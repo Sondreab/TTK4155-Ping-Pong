@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Atmel Studio Solution File, Format Version 11.00
+Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "ATmega162", "ATmega162\ATmega162.cproj", "{8A854523-3D68-42E9-A1F3-EF5C1B392634}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|AVR = Debug|AVR
+		Release|AVR = Release|AVR
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8A854523-3D68-42E9-A1F3-EF5C1B392634}.Debug|AVR.ActiveCfg = Debug|AVR
+		{8A854523-3D68-42E9-A1F3-EF5C1B392634}.Debug|AVR.Build.0 = Debug|AVR
+		{8A854523-3D68-42E9-A1F3-EF5C1B392634}.Release|AVR.ActiveCfg = Release|AVR
+		{8A854523-3D68-42E9-A1F3-EF5C1B392634}.Release|AVR.Build.0 = Release|AVR
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
