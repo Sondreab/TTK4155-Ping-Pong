@@ -46,7 +46,9 @@ char uart_getchar(void) {
 
 
 
+
 //testing what happens when we send something from ATmega162
+/*
 int main(void) {
 	//char received = uart_getchar();
 	//uart_putchar(received);
@@ -57,4 +59,5 @@ int main(void) {
 	}
 	
 }
+*/
 
