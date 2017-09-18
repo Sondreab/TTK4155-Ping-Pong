@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include "UART_driver.h"
 #include "XMEM_driver.h"
+#include "ADC_driver.h"
 
 #define FOSC 4915200// Clock Speed
 #define BAUD 9600
@@ -26,12 +27,9 @@ int main(void){
 	
 	
 	XMEM_init();
-	XMEM_simple_test();
-	/*XMEM_test((char *) 0x1000, 0x400);//testing OLED
-	_delay_ms(1000);
-	XMEM_test((char *) 0x1400, 0x400);//testing ADC
-	_delay_ms(1000);
-	XMEM_test((char *) 0x1800, 0x800); //testing SRAM*/
+	
+	
+	XMEM_test();
 	
 	//while (1) {
 		//_delay_ms(1000);
@@ -46,5 +44,10 @@ int main(void){
 		
 		//((uint8_t *)0x181F)[0] =1;
 	//}
-	
+
+	while(1){
+		uint8_t Xcoord = ADC_read(1);
+		printf("%02x", Xcoord);
+		_delay_ms(1000);
+	}
 }

@@ -10,9 +10,9 @@
 
 int XMEM_init(void) {
 	//enable external memory
-	MCUCR = (1<<SRE);
+	MCUCR |= (1<<SRE);
 	//mask out JTAG p32
-	SFIOR = (1<<XMM2);
+	SFIOR |= (1<<XMM2);
 	return 0;
 }
 
@@ -30,6 +30,7 @@ void XMEM_test(void) {
 		for (uint16_t i = 0; i < ext_ram_size; i++) {
 			uint8_t some_value = rand();
 			ext_ram[i] = some_value;
+			_delay_us(100);
 			uint8_t retreived_value = ext_ram[i];
 			if (retreived_value != some_value) {
 				printf("Write phase error: ext_ram[%4d] = %02X (should be %02X)\n", i, retreived_value, some_value);

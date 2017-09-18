@@ -109,6 +109,12 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="ADC_driver.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="ADC_driver.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="ass1_testPulse.c">
       <SubType>compile</SubType>
     </Compile>
