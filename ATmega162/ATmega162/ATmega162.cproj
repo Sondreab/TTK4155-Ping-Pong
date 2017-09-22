@@ -118,6 +118,12 @@
     <Compile Include="ass1_testPulse.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="JOY_driver.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="JOY_driver.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="main.c">
       <SubType>compile</SubType>
     </Compile>

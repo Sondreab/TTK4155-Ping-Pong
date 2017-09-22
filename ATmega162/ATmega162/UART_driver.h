@@ -8,7 +8,7 @@
 
 
 void UART_Init( unsigned int ubrr );
-int UART_Transmit(char data);
+void UART_Transmit(char data);
 int UART_Receive();
 
 #ifndef UART_DRIVER_H_

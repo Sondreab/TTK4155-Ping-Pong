@@ -14,22 +14,27 @@
 #include <stdlib.h>
 #include "UART_driver.h"
 #include "XMEM_driver.h"
+#include "JOY_driver.h"
 #include "ADC_driver.h"
+
 
 #define FOSC 4915200// Clock Speed
 #define BAUD 9600
 #define MYUBRR FOSC/16/BAUD-1
+
+
+
 
 int main(void){
 	
 	UART_Init ( MYUBRR );
 	fdevopen(&UART_Transmit, &UART_Receive);
 	
-	
+	INTR_init();
 	XMEM_init();
 	
 	
-	XMEM_test();
+	//XMEM_test();
 	
 	//while (1) {
 		//_delay_ms(1000);
@@ -44,10 +49,14 @@ int main(void){
 		
 		//((uint8_t *)0x181F)[0] =1;
 	//}
-
+	
+	
 	while(1){
-		uint8_t Xcoord = ADC_read(1);
-		printf("%02x", Xcoord);
+		struct JOY_position_t position = JOY_getPosition();
+		enum JOY_direction_t direction = JOY_getDirection();
+		printf("( %i , %i ) - DIR:  %i \n", position.X, position.Y, direction);
+		
 		_delay_ms(1000);
 	}
 }
+

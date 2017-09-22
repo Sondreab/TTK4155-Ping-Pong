@@ -7,6 +7,7 @@
 #include <avr/io.h>
 #include <stdlib.h>
 #include <util/delay.h>
+#include "XMEM_driver.h"
 
 int XMEM_init(void) {
 	//enable external memory
