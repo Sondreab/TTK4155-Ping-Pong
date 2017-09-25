@@ -20,11 +20,18 @@ enum JOY_direction_t {
 	LEFT,
 	};
 	
+struct JOY_sliders_t {
+	int L_slider;
+	int R_slider;
+};
+	
 void JOY_init();
 void JOY_calibrate();
 int JOY_button(int button);
 struct JOY_position_t JOY_getPosition();
 enum JOY_direction_t JOY_getDirection();
+struct JOY_sliders_t JOY_getSliderPosition();
+void JOY_loopedTest();
 
 
 #ifndef JOY_DRIVER_H_

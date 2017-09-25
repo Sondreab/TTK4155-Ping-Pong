@@ -118,6 +118,9 @@
     <Compile Include="ass1_testPulse.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="fonts.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="JOY_driver.c">
       <SubType>compile</SubType>
     </Compile>
@@ -125,6 +128,12 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="main.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="OLED_driver.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="OLED_driver.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="UART_driver.c">
