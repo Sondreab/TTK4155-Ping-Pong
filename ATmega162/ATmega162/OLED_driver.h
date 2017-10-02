@@ -15,7 +15,7 @@ void OLED_goto_line(uint8_t line);
 void OLED_clear_line(uint8_t line);
 void OLED_pos(uint8_t row, uint8_t col);
 void OLED_print_arrow(uint8_t row, uint8_t col);
-void OLED_print(char* character);
+void OLED_print(char charArray[], size_t size);
 void OLED_set_brightness(uint8_t lvl);
 
 

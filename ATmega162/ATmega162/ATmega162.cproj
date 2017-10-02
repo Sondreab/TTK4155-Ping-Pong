@@ -130,6 +130,12 @@
     <Compile Include="main.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="MENU.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="MENU.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="OLED_driver.c">
       <SubType>compile</SubType>
     </Compile>

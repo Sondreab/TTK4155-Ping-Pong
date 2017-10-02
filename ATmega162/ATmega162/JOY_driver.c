@@ -5,12 +5,15 @@
  *  Author: sondreab
  */ 
 
+# define F_CPU 4915200UL
 #include <stdio.h>
 #include <stdlib.h>
 #include <util/delay.h>
 #include <avr/io.h>
 #include "ADC_driver.h"
 #include "JOY_driver.h"
+
+
 
 //Set in JOY_calibrate()
 static volatile int Rx_max = 255;

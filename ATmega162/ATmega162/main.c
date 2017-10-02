@@ -32,28 +32,20 @@ int main(void){
 	INTR_init();
 	XMEM_init();
 	XMEM_test();
-	JOY_init();
 	OLED_init();
+	OLED_reset();
+	//JOY_init();
 	
+	OLED_pos(0,0);
 	
-	//XMEM_test();
+	char array[12] = "Hello World";
 	
-	//while (1) {
-		//_delay_ms(1000);
-		//UART test
-		
-		//printf("Hello World!");
-		//recievedMessage = UART_Receive();
-		//UART_Transmit(recievedMessage);
-	//}
-		
-		
-		
-		//((uint8_t *)0x181F)[0] =1;
+	OLED_print(array, sizeof(array));
+	//size_t size = sizeof(array) / sizeof(array[0]);
+//
+	//for(int i = 0; i <size-1; i++){
+		//printf("%c", array[i]);
 	//}
 	
-	OLED_print_arrow(1,1);
-	while(1){
-	}
 }
 
