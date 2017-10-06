@@ -17,6 +17,7 @@
 #include "JOY_driver.h"
 #include "ADC_driver.h"
 #include "OLED_driver.h"
+#include "MENU.h"
 
 
 #define FOSC 4915200// Clock Speed
@@ -35,12 +36,10 @@ int main(void){
 	OLED_init();
 	OLED_reset();
 	//JOY_init();
+	MENU_init();
+	MENU_home(*main_menu);
 	
-	OLED_pos(0,0);
-	
-	char array[12] = "Hello World";
-	
-	OLED_print(array, sizeof(array));
+
 	//size_t size = sizeof(array) / sizeof(array[0]);
 //
 	//for(int i = 0; i <size-1; i++){

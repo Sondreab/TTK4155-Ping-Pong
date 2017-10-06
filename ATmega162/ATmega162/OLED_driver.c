@@ -12,6 +12,7 @@
 #include "OLED_driver.h"
 #include "fonts.h"
 
+
 void OLED_init(){
 	OLED_write_command(0xae);       //display  off
 	OLED_write_command(0xa1);       //segment  remap
@@ -53,10 +54,6 @@ void OLED_reset(){
 	}
 }
 
-void OLED_home(){
-	
-}
-
 void OLED_goto_line(uint8_t line){
 	OLED_write_command((0xB0) | line);
 	
@@ -87,6 +84,9 @@ void OLED_print_arrow(uint8_t row, uint8_t col){
 void OLED_print(char charArray[], size_t size){
 	for(int element = 0; element < size-1; element++){
 		char character = charArray[element];
+		if (character == '\0'){
+			break;
+		}
 		character = character - 32;
 		uint8_t byte;
 		for(int col = 0; col < 5; col++){
