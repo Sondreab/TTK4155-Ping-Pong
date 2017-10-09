@@ -93,7 +93,7 @@ int JOY_button(int button) {
 	//button = 2 -> Right touchbutton (PB1)
 	switch(button){
 		case 0:
-		if(PINB & (1<<PB0)){
+		if(!(PINB & (1<<PB0))){
 			output = 1;
 		}
 		break;
@@ -152,7 +152,7 @@ enum JOY_direction_t JOY_getDirection() {
 		
 	}
 	//change the value for the comparison to change the dead-zone in the middle
-	if (abs(position.X)<5 && abs(position.Y)<5) {
+	if (abs(position.X)<20 && abs(position.Y)<20) {
 		direction = NEUTRAL;
 	}
 	
@@ -175,7 +175,7 @@ void JOY_loopedTest(){
 		struct JOY_sliders_t sliders = JOY_getSliderPosition();
 		printf("( %i , %i ) - DIR:  %i \n", position.X, position.Y, direction);
 		printf("Slider: (%i, %i)\n", sliders.L_slider, sliders.R_slider);
-		printf("ButtonL: %i \nButtonR: %i\n", JOY_button(1), JOY_button(2));
+		printf("ButtonL: %i \nButtonR: %i\n JOYButton:%i\n", JOY_button(1), JOY_button(2), JOY_button(0));
 		
 		_delay_ms(1000);
 	}

@@ -32,19 +32,15 @@ int main(void){
 	
 	INTR_init();
 	XMEM_init();
-	XMEM_test();
+	//XMEM_test();
 	OLED_init();
 	OLED_reset();
-	//JOY_init();
-	MENU_init();
-	MENU_home(*main_menu);
 	
+	OLED_pos(0,0);
+ 	menu_t* mainMenu = MENU_init();
+ 	MENU_controller();
+	
+	//JOY_loopedTest();
 
-	//size_t size = sizeof(array) / sizeof(array[0]);
-//
-	//for(int i = 0; i <size-1; i++){
-		//printf("%c", array[i]);
-	//}
-	
 }
 

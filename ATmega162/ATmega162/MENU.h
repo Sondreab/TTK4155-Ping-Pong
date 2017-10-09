@@ -5,22 +5,19 @@
  *  Author: sondreab
  */ 
 
+typedef struct menu_t menu_t;
 
-
-typedef struct menu_t{
-	char name[11];
+struct menu_t {
+	char* name;
 	struct menu_t* parent;
-	struct menu_t* contents[6]; 
-	} menu_t;
+	uint8_t num_submenus;
+	struct menu_t** submenus;
+	};
 	
 	
-struct menu_t *main_menu = NULL;
-struct menu_t *play_game = NULL;
-struct menu_t *settings = NULL;
-struct menu_t *highscores = NULL;
 
-void MENU_create(char name[], menu_t * parent, menu_t * contents[]); 
-int MENU_init(void);
+
+menu_t* MENU_init(void);
 void MENU_controller(void);
 void MENU_home(menu_t home_menu);
 void MENU_descend(void);
