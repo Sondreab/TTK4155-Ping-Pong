@@ -97,6 +97,21 @@ void OLED_print(char charArray[], size_t size){
 	
 }
 
+void NEW_OLED_print(char* characters) {
+	for (uint8_t element = 0; element < 16; element++) {
+		char character = characters[element];
+		if (character == '\0') {
+			break;
+		}
+		character = character - 32;
+		uint8_t byte;
+		for(int col = 0; col < 5; col++) {
+			byte = pgm_read_byte(&(font5[character][col]));
+			OLED_write_data(byte);
+		}
+	}
+}
+
 void OLED_set_brightness(uint8_t lvl){
 	
 }
