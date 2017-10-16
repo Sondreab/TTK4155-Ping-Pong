@@ -71,6 +71,8 @@ Copyright 2003 Kimberly Otten Software Consulting
 #define MCP_RX_INT		0x03		// Enable receive interrupts
 #define MCP_NO_INT		0x00		// Disable all interrupts
 
+
+
 #define MCP_TX01_MASK	0x14
 #define MCP_TX_MASK		0x54
 
@@ -142,6 +144,7 @@ Copyright 2003 Kimberly Otten Software Consulting
 #define WAKFIL_ENABLE	0x40
 #define WAKFIL_DISABLE	0x00
 
+// CANINTE Register bits
 
 // CANINTF Register Bits
 
@@ -153,6 +156,40 @@ Copyright 2003 Kimberly Otten Software Consulting
 #define MCP_ERRIF		0x20
 #define MCP_WAKIF		0x40
 #define MCP_MERRF		0x80
+
+
+// Custom
+
+#define MCP_CANINTE_RXB0_1_ENABLE		0x1, 0b00000011
+
+#define MCP_CANINTF_TEST_RXB0_FULL		0b00000001
+#define MCP_CANINTF_TEST_RXB1_FULL		0b00000010
+#define MCP_CANINTF_CLEAR_RXB0			0x1, 0b00000001
+#define MCP_CANINTF_CLEAR_RXB1			0x1, 0b00000010
+
+#define MCP_TXB0CTRL_TEST_TX_REQUEST	0b00001000
+#define MCP_TXB0_SIDH					0x31
+#define MCP_TXB0_SIDL					0x32
+#define MCP_TXB0_DLC					0x35
+#define MCP_TXB0_D0						0x36
+
+#define MCP_RTS_TXB0					0b00000001
+		
+
+#define MCP_RXB0CTRL_SET_FILTERS_OFF	0b01100000, 0xff
+#define MCP_RXB0CTRL_SET_ROLLOVER_ON	0b00000100, 0xff
+#define MCP_RXB0CTRL_SET_ROLLOVER_OFF	0b00000100, 0x00
+#define MCP_RXB0_SIDH					0x61
+#define MCP_RXB0_SIDL					0x62
+#define MCP_RXB0_DLC					0x65
+#define MCP_RXB0_D0						0x66
+#define MCP_RXB1_SIDH					0x71
+
+#define MCP_RXB1_D0						
+
+#define MCP_CANCTRL_SET_MODE_NORMAL    0b11100000, 0b00000000
+#define MCP_CANCTRL_SET_MODE_LOOPBACK  0b11100000, 0b01000000
+#define MCP_CANCTRL_SET_MODE_CONFIG		0b11100000, 0b10000000
 
 
 

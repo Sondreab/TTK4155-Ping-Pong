@@ -18,6 +18,7 @@
 #include "ADC_driver.h"
 #include "OLED_driver.h"
 #include "MENU.h"
+#include "CAN_driver.h"
 
 
 #define FOSC 4915200// Clock Speed
@@ -32,14 +33,27 @@ int main(void){
 	
 	INTR_init();
 	XMEM_init();
-	//XMEM_test();
+	XMEM_test();
 	OLED_init();
 	OLED_reset();
+	CAN_init();
 	
-	OLED_pos(0,0);
- 	menu_t* mainMenu = MENU_init();
- 	MENU_controller();
+	struct CAN_msg_t msg;
+	msg.id = 3;
+	msg.length = 1;
+	msg.data[0] = 3;
+	printf("Before send: %i\n", msg.data[0]);
+	CAN_message_send(&msg);
+	struct CAN_msg_t message = CAN_data_recieve();
 	
+	printf("%i", message.data[0]);
+	
+	//mcp2515_write(0b00110110,0x55);
+	//uint8_t temp = mcp2515_read(0b00110110);
+	//printf("Test %x\n",temp);
+	//OLED_pos(0,0);
+ 	//menu_t* mainMenu = MENU_init();
+ 	//MENU_controller();
 	//JOY_loopedTest();
 
 }
