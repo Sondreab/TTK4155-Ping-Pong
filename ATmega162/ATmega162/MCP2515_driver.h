@@ -11,7 +11,7 @@
 
 
 
-char mcp2515_read(char address, char* data);
+char mcp2515_read(char address);
 void mcp2515_write(char address, char data);
 void mcp2515_request_to_send(char RTS_command);
 void mcp2515_bit_modify(char address, char bitMask, char dataByte);

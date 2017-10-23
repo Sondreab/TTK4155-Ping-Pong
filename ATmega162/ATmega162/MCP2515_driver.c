@@ -10,15 +10,18 @@
 #include "MCP2515.h"
 #include "SPI_driver.h"
 
-void mcp2515_read(char address, char* data) {
+char mcp2515_read(char address) {
+	char data;
 	SPI_setCSLow();
 	//send the READ instruction 0x03
 	SPI_send(MCP_READ);
 	//send the address to be read
 	SPI_send(address);
 	//receive data
-	*data = SPI_read();
+	data = SPI_read();
 	SPI_setCSHigh();
+	
+	return data;
 }
 
 void mcp2515_write(char address, char data) {
@@ -34,7 +37,7 @@ void mcp2515_write(char address, char data) {
 
 void mcp2515_request_to_send(char RTS_command) {
 	SPI_setCSLow();
-	SPI_send((0x10 | RTS_command));
+	SPI_send(RTS_command);
 	SPI_setCSHigh();
 }
 
