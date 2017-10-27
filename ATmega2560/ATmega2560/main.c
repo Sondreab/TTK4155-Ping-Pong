@@ -11,12 +11,20 @@
 #include <util/delay.h>
 #include "UART_driver.h"
 
+#define BAUD 9600
+#define MYUBRR (F_CPU/16/BAUD-1)
 int main(void)
 {
+	UART_Init(MYUBRR);
 	char data = "a";
-    while(1)
-    {
-        UART_Transmit(data);
+	DDRB = 0xFF;
+	while (1)
+	{
+		PORTB |= (1 << PB7);
+		UART_Transmit(0xC3);
 		_delay_ms(500);
-    }
+		PORTB &= ~(1 << PB7);
+		
+	}
+	
 }
