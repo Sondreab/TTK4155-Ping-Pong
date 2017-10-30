@@ -19,7 +19,10 @@ void UART_Init( unsigned int ubrr )
 
 	//Enable receiver and transmitter
 	UCSR0B = (1<<RXEN0)|(1<<TXEN0);
+	//1 byte (8 bit) data and 2 stop bits
 	UCSR0C = (1<<USBS0)|(3<<UCSZ00);
+	
+
 }
 
 

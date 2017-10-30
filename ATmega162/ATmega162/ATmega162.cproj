@@ -163,6 +163,9 @@
     <Compile Include="SPI_driver.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="typedef.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="UART_driver.c">
       <SubType>compile</SubType>
     </Compile>

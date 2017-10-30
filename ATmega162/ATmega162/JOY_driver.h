@@ -5,6 +5,13 @@
  *  Author: sondreab
  */ 
 
+#define NUM_BUTTONS 3
+
+// enum JOY_button_t {
+// 	JOYSTICK_BUTTON,
+// 	LEFT_BUTTON,
+// 	RIGHT_BUTTON,
+// 	};
 
 
 struct JOY_position_t {

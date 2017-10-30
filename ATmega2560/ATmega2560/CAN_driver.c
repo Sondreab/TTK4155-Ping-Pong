@@ -5,7 +5,7 @@
  *  Author: marmad
  */ 
 
-# define F_CPU 4915200UL
+# define F_CPU 16000000UL
 #include <avr/io.h>
 #include <stdio.h>
 #include <util/delay.h>
@@ -18,9 +18,7 @@
 uint8_t CAN_init() {
 	SPI_MasterInit();
 	mcp2515_reset();	
-	
 	_delay_ms(1);
-	
 	char value = mcp2515_read(MCP_CANSTAT);
 	//self-test
 	if ((value & MODE_MASK) != MODE_CONFIG) {
@@ -28,9 +26,13 @@ uint8_t CAN_init() {
 		return 1;
 	}
 	
-	mcp2515_bit_modify(MCP_CANINTE, MCP_CANINTE_RXB0_ENABLE);
+	_delay_ms(1);
 	mcp2515_bit_modify(MCP_RXB0CTRL, MCP_RXB0CTRL_SET_FILTERS_OFF);
+	_delay_ms(1);
 	mcp2515_bit_modify(MCP_RXB0CTRL, MCP_RXB0CTRL_SET_ROLLOVER_OFF);
+	_delay_ms(1);
+	mcp2515_bit_modify(MCP_CANINTE, MCP_CANINTE_RXB0_ENABLE);
+	_delay_ms(1);
 	
 	mcp2515_bit_modify(MCP_CANCTRL, MCP_CANCTRL_SET_MODE_NORMAL);
 	
@@ -55,7 +57,7 @@ void CAN_message_send(struct CAN_msg_t* msg){
 	}
 	
 	mcp2515_request_to_send(MCP_RTS_TX0);
-	printf("End of send\n");
+	
 }
 
 void CAN_data_recieve(struct CAN_msg_t* msg){

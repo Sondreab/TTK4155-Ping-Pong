@@ -19,6 +19,7 @@
 #include "ADC_driver.h"
 #include "OLED_driver.h"
 #include "MENU.h"
+#include "MCP2515.h"
 #include "CAN_driver.h"
 
 
@@ -26,69 +27,77 @@
 #define BAUD 9600
 #define MYUBRR FOSC/16/BAUD-1
 
-char new_unread_message;
+volatile char new_unread_message;
 
 void INTR_init(void){
 	
 	//CAN interrupt
 	DDRE &= ~(1<<PD3);
 	
-	//ADC interrupt
-	DDRE &= ~(1<<PE0);
-	
 	//Disable global interrupts
 	cli();
 	
-	//Interrupt on falling edge on PD3 and PE0
+	//Interrupt on falling edge on PD3
 	MCUCR &= ~(1<<ISC10);
 	MCUCR |= (1<<ISC11);
-	EMCUCR |= (1<<ISC2);
 	
-	//Enable interrupt on PD3 and PE0
+	//Enable interrupt on PD3
 	GICR |= (1<<INT1);
-	GICR |= (1<<INT2);
 	
 	//Enable global interrupts
 	sei();
 }
-
-	// -- ISR FOR INT2 IS IMPLEMENTED IN ADC_driver.c FOR DEPENDENCY REASONS -- //
 
 ISR(INT1_vect){
 	new_unread_message = 1;
 }
 
 
+void joystick_message_packager(struct CAN_msg_t* msg)
+{
+	msg->id = 0x01;
+	msg->length = 6;
+	struct JOY_position_t position = JOY_getPosition();
+	enum JOY_direction_t direction = JOY_getDirection();
+	struct JOY_sliders_t sliders = JOY_getSliderPosition();
+	char buttons = 0b000;
+	for (int button = 0; button < NUM_BUTTONS; button++){
+		buttons |= (JOY_button(button) << (NUM_BUTTONS-(button+1)));
+	}
+	msg->data[0] = position.X;
+	msg->data[1] = position.Y;
+	msg->data[2] = direction;
+	msg->data[3] = sliders.L_slider;
+	msg->data[4] = sliders.R_slider;
+	msg->data[5] = buttons;	
+	_delay_ms(500);
+}
+
+
 int main(void){
-	
 	UART_Init ( MYUBRR );
 	fdevopen(&UART_Transmit, &UART_Receive);
 	INTR_init();
 	XMEM_init();
 	XMEM_test();
+	JOY_init();
 	OLED_init();
 	OLED_reset();
 	CAN_init();
 	
-	volatile struct CAN_msg_t message_received;
+	volatile struct CAN_msg_t transmit_msg;
+	volatile struct CAN_msg_t receive_msg;
 	
-	struct CAN_msg_t msg;
-	msg.id = 2047;
-	msg.length = 2;
-	msg.data[0] = 7;
-	msg.data[1] = 80;
-	printf("Before send: %i %i\n", msg.data[0], msg.data[1]);
-	CAN_message_send(&msg);
-	
-	_delay_ms(1000);
+	while (1)
+	{
+		joystick_message_packager(&transmit_msg);
+		CAN_message_send(&transmit_msg);
+		
+		_delay_ms(1000);
+	}
 	
 	
-	while (new_unread_message != 1);
-	CAN_data_recieve(&message_received);
-	new_unread_message = 0;
 	
-	printf("Received ID: %i\n", message_received.id);
-	printf("Received data: %i %i\n", message_received.data[0], message_received.data[1]);
 
 }
 
