@@ -42,7 +42,7 @@
     <com_atmel_avrdbg_tool_atmelice>
       <ToolOptions>
         <InterfaceProperties>
-          <JtagDbgClock>3000000</JtagDbgClock>
+          <JtagDbgClock>200000</JtagDbgClock>
         </InterfaceProperties>
         <InterfaceName>JTAG</InterfaceName>
       </ToolOptions>
@@ -127,6 +127,12 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="CAN_driver.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="PWM_driver.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="PWM_driver.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="main.c">

@@ -14,6 +14,7 @@
 #include "MCP2515.h"
 #include "MCP2515_driver.h"
 #include "CAN_driver.h"
+#include "PWM_driver.h"
 
 
 #define BAUD 9600
@@ -51,6 +52,7 @@ int main(void)
 	fdevopen(&UART_Transmit, &UART_Receive);
 	INTR_init();
 	CAN_init();
+	PWM_init();
 
 	volatile struct CAN_msg_t message_received;
 	
@@ -65,6 +67,9 @@ int main(void)
 			for(int data_byte = 0; data_byte < message_received.length; data_byte++){
 				printf("\tReceived data[%i]: %i\n", data_byte, message_received.data[data_byte]);
 			}
+			
+			PWM_set_compare(message_received.data[0]);
+			
 		}
 		
 	}
