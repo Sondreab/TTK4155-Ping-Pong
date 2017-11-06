@@ -45,6 +45,50 @@ ISR(INT0_vect){
 	new_unread_message = 1;
 }
 
+int detect_goal(){
+	int goal_made = 0;
+	if(ADC_filtered_read(10) < 25){
+		goal_made = 1;
+	}
+	return goal_made;
+}
+
+void print_message_details(struct CAN_msg_t* msg){
+	printf("Received ID: %i\n", msg->id);
+	
+	printf("\tX: %i\n", msg->data[0]);
+	printf("\tY: %i\n", msg->data[1]);
+	switch (msg->data[3]){
+		case 0:
+		printf("\tDir: NEUTRAL\n");
+		break;
+		
+		case 1:
+		printf("\tDir: UP\n");
+		break;
+		
+		case 2:
+		printf("\tDir: RIGHT\n");
+		break;
+		
+		case 3:
+		printf("\tDir: DOWN\n");
+		break;
+		
+		case 4:
+		printf("\tDir: LEFT\n");
+		break;
+		
+		default:
+		break;
+	}
+	int joyb = msg->data[5] >> 2;
+	int Lb = ((msg->data[5] & 0b010) >> 1);
+	int Rb = (msg->data[5] & 0b001);
+	printf("\tLeft Slider: %i\n", msg->data[3]);
+	printf("\tRight Slider: %i\n", msg->data[4]);
+	printf("\tButtons: \n\t\tJoy: %i \n\t\tLeft: %i \n\t\tRight: %i\n\n", joyb, Lb, Rb);
+}
 
 int main(void)
 {
@@ -53,8 +97,11 @@ int main(void)
 	INTR_init();
 	CAN_init();
 	PWM_init();
+	ADC_init();
 
 	volatile struct CAN_msg_t message_received;
+	int totGoals = 0;
+	
 	
 	while (1)
 	{
@@ -63,16 +110,18 @@ int main(void)
 			CAN_data_recieve(&message_received);
 			new_unread_message = 0;
 	
-			printf("Received ID: %i\n", message_received.id);
-			for(int data_byte = 0; data_byte < message_received.length; data_byte++){
-				printf("\tReceived data[%i]: %i\n", data_byte, message_received.data[data_byte]);
-			}
+			print_message_details(&message_received);
 			
 			PWM_set_compare(message_received.data[0]);
 			
 		}
 		
+		if(detect_goal()){
+			totGoals++;
+			printf("\n----  Goal detected!  ----\n\n");
+			printf("----  Total goals: %i  ----\n", totGoals);
+			_delay_ms(1000);
+		}
+		
 	}
-	
-	
 }
