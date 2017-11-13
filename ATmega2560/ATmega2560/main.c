@@ -15,6 +15,9 @@
 #include "MCP2515_driver.h"
 #include "CAN_driver.h"
 #include "PWM_driver.h"
+#include "ADC_driver.h"
+#include "DAC_driver.h"
+#include "Motor_controller.h"
 
 
 #define BAUD 9600
@@ -25,23 +28,23 @@ volatile char new_unread_message = 0;
 void INTR_init(void){
 	
 	//CAN interrupt
-	DDRD &= ~(1<<PD0);
+	DDRD &= ~(1<<PD2);
 	
 	//Disable global interrupts
 	cli();
 	
-	//Interrupt on falling edge on PD0
-	EICRA &= ~(1<<ISC00);
-	EICRA |= (1<<ISC01);
+	//Interrupt on falling edge on PD2
+	EICRA &= ~(1<<ISC20);
+	EICRA |= (1<<ISC21);
 	
-	//Enable interrupt on PD0
-	EIMSK |= (1<<INT0);
+	//Enable interrupt on PD2
+	EIMSK |= (1<<INT2);
 	
 	//Enable global interrupts
 	sei();
 }
 
-ISR(INT0_vect){
+ISR(INT2_vect){
 	new_unread_message = 1;
 }
 
@@ -94,15 +97,27 @@ int main(void)
 {
 	UART_Init(MYUBRR);
 	fdevopen(&UART_Transmit, &UART_Receive);
+	DAQ_init();
 	INTR_init();
 	CAN_init();
 	PWM_init();
 	ADC_init();
+	Motor_init();
+	printf("End of init\n");
 
 	volatile struct CAN_msg_t message_received;
 	int totGoals = 0;
 	
+	Fire_solenoid();
 	
+	//while(1){
+		//Set_Motor(0b1, 0x40);
+		//Get_motor_pos();
+		//_delay_ms(2000);
+		//Set_Motor(0b0, 0x40);
+		//Get_motor_pos();
+		//_delay_ms(2000);
+	//}
 	while (1)
 	{
 		_delay_us(1);
@@ -113,6 +128,9 @@ int main(void)
 			print_message_details(&message_received);
 			
 			PWM_set_compare(message_received.data[0]);
+			if((message_received.data[5]>>2)) {
+				Fire_solenoid();
+			}
 			
 		}
 		

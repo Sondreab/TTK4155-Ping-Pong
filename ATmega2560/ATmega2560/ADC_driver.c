@@ -21,7 +21,7 @@ void ADC_init(){
 	ADMUX &= ~(1 << REFS1);
 	
 	
-	//Set PF0 as input
+	//Set PF0 as input [A0 on the arduino shield]
 	PORTF &= ~(1 << PF0);
 	
 	//Set Left-adjusted result bits because we only need 8 bit resolution -> descrepency of 4 lsb = +- 20 mV
