@@ -27,6 +27,13 @@
 volatile char new_unread_message = 0;
 volatile char pid_update_flag = 0;
 
+typedef struct board_input_t{
+	int8_t motor_speed;
+	int8_t servo_position;
+	int8_t solenoid_trigger_prev;
+	int8_t solenoid_trigger_curr;	
+	};
+
 void INTR_init(void){
 	
 	//CAN interrupt
@@ -62,35 +69,42 @@ int detect_goal(){
 	return goal_made;
 }
 
+void extract_message_data(struct board_input_t* board_input, struct CAN_msg_t* msg){
+	board_input->motor_speed = msg->data[0];
+	board_input->servo_position = msg->data[1];							//NOT FINALIZED
+	board_input->solenoid_trigger_prev = board_input->solenoid_trigger_curr;
+	board_input->solenoid_trigger_curr = (msg->data[5] >> 2);		//NOT FINALIZED
+}
+
 void print_message_details(struct CAN_msg_t* msg){
 	printf("Received ID: %i\n", msg->id);
 	
 	printf("\tX: %i\n", msg->data[0]);
 	printf("\tY: %i\n", msg->data[1]);
-	switch (msg->data[3]){
-		case 0:
-		printf("\tDir: NEUTRAL\n");
-		break;
-		
-		case 1:
-		printf("\tDir: UP\n");
-		break;
-		
-		case 2:
-		printf("\tDir: RIGHT\n");
-		break;
-		
-		case 3:
-		printf("\tDir: DOWN\n");
-		break;
-		
-		case 4:
-		printf("\tDir: LEFT\n");
-		break;
-		
-		default:
-		break;
-	}
+// 	switch (msg->data[3]){
+// 		case 0:
+// 		printf("\tDir: NEUTRAL\n");
+// 		break;
+// 		
+// 		case 1:
+// 		printf("\tDir: UP\n");
+// 		break;
+// 		
+// 		case 2:
+// 		printf("\tDir: RIGHT\n");
+// 		break;
+// 		
+// 		case 3:
+// 		printf("\tDir: DOWN\n");
+// 		break;
+// 		
+// 		case 4:
+// 		printf("\tDir: LEFT\n");
+// 		break;
+// 		
+// 		default:
+// 		break;
+// 	}
 	int joyb = msg->data[5] >> 2;
 	int Lb = ((msg->data[5] & 0b010) >> 1);
 	int Rb = (msg->data[5] & 0b001);
@@ -114,6 +128,12 @@ int main(void)
 
 	// ---- VARIABLE AND STRUCT INITIALIZATION ---- //
 	volatile struct CAN_msg_t message_received;
+	struct board_input_t board_input;
+	
+	board_input.motor_speed = 0;
+	board_input.servo_position = 0;
+	board_input.solenoid_trigger_curr, board_input.solenoid_trigger_prev = 0;
+	
 	struct PID_DATA pid_data;
 	int16_t P_factor = 1;
 	int16_t I_factor = 1;
@@ -129,21 +149,28 @@ int main(void)
 	
 	// ---- LOOP ---- //
 	
-	_delay_ms(1000);
+	
 	
 	while (1)
 	{
-		_delay_us(1);
+		_delay_ms(1);
 		if(new_unread_message){
 			CAN_data_recieve(&message_received);
-			new_unread_message = 0;
-	
-			print_message_details(&message_received);
+			if (message_received.id == 0x0f){
+				extract_message_data(&board_input, &message_received);
+			}
 			
-			PWM_set_compare(message_received.data[0]);
-			if((message_received.data[5]>>2)) {
+			printf("Motor: %i\n", board_input.motor_speed);
+			printf("Servo: %i\n", board_input.servo_position);
+			printf("Solenoid: %i -> %i\n\n", board_input.solenoid_trigger_prev, board_input.solenoid_trigger_curr);
+			
+			//print_message_details(&message_received);
+			
+			PWM_set_compare(board_input.servo_position);
+			if(board_input.solenoid_trigger_prev == 0 & board_input.solenoid_trigger_curr == 1) {
 				Fire_solenoid();
 			}
+			new_unread_message = 0;
 			
 		}
 		
@@ -155,10 +182,10 @@ int main(void)
 		}
 		
 		if(pid_update_flag){
-			encoderData = Get_motor_pos();
-			pid_output = pid_Controller(1*INPUT_MATCH, encoderData, &pid_data);
-			printf("pid output: %i\n", pid_output/OUTPUT_MATCH);
-			Set_Motor(pid_output/LEVEL_MATCH);
+// 			encoderData = Get_motor_pos();
+// 			pid_output = pid_Controller(board_input.motor_speed*INPUT_MATCH, encoderData, &pid_data);
+// 			printf("pid output: %i\n\n", pid_output/OUTPUT_MATCH);
+			Set_Motor(board_input.motor_speed/1.5);
 			pid_update_flag = 0;
 		}
 		

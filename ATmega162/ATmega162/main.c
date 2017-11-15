@@ -55,7 +55,7 @@ ISR(INT1_vect){
 
 void joystick_message_packager(struct CAN_msg_t* msg)
 {
-	msg->id = 0x01;
+	msg->id = 0x0f;
 	msg->length = 6;
 	struct JOY_position_t position = JOY_getPosition();
 	enum JOY_direction_t direction = JOY_getDirection();
@@ -70,7 +70,7 @@ void joystick_message_packager(struct CAN_msg_t* msg)
 	msg->data[3] = sliders.L_slider;
 	msg->data[4] = sliders.R_slider;
 	msg->data[5] = buttons;	
-	_delay_ms(500);
+	_delay_ms(1);
 }
 
 
@@ -88,12 +88,16 @@ int main(void){
 	volatile struct CAN_msg_t transmit_msg;
 	volatile struct CAN_msg_t receive_msg;
 	
-	while (1)
+// 	struct JOY_position_t position;
+// 	enum JOY_direction_t direction; 
+// 	struct JOY_sliders_t sliders;
+	
+	while (1) //While game is running
 	{
 		joystick_message_packager(&transmit_msg);
 		CAN_message_send(&transmit_msg);
 		
-		_delay_ms(1000);
+		_delay_ms(25);
 	}
 	
 	

@@ -55,7 +55,6 @@ void CAN_message_send(struct CAN_msg_t* msg){
 	}
 	
 	mcp2515_request_to_send(MCP_RTS_TX0);
-	printf("End of send\n");
 }
 
 void CAN_data_recieve(struct CAN_msg_t* msg){

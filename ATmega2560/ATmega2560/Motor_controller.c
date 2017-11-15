@@ -34,22 +34,22 @@ void Set_Motor(int16_t speed){
 	//set direction
 	if(speed < 0){
 		PORTH &= ~(1<<PH1);
+		speed = -speed;
 	} else if(speed > 0){
 		PORTH |= (1<<PH1);
-	} else {
+	} else if(speed == 0){
 		PORTH &= ~(1<<PH4);
 	}
 	
-	speed = abs(speed);
 	if (speed > 128){
 		speed = 128;
 	}
 	
-	//set value
-	DAQ_setOutput((int8_t)speed);
+	uint8_t motor_input = speed;
 	
-	_delay_ms(100);
-	PORTH &= ~(1<<PH4);
+	//set value
+	DAQ_setOutput(motor_input);
+	
 }
 
 int16_t Get_motor_pos(){
@@ -80,6 +80,6 @@ int16_t Get_motor_pos(){
 
 void Fire_solenoid(){
 	PORTF &= ~(1<<PF1);
-	_delay_ms(100);
+	_delay_ms(30);
 	PORTF |= (1<<PF1);
 }
