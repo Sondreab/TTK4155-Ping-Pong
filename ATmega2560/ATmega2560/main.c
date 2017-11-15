@@ -26,6 +26,7 @@
 
 volatile char new_unread_message = 0;
 volatile char pid_update_flag = 0;
+volatile char timer0_tot_overflow = 0;
 
 typedef struct board_input_t{
 	int8_t motor_speed;
@@ -59,7 +60,15 @@ ISR(INT2_vect){
 
 ISR(TIMER0_OVF_vect){
 	pid_update_flag = 1;
+	timer0_tot_overflow++;
+	if(timer0_tot_overflow > 70){
+		timer0_tot_overflow = 0;
+		retract_solenoid();
+	}
+	
 }
+
+
 
 int detect_goal(){
 	int goal_made = 0;
@@ -123,11 +132,15 @@ int main(void)
 	PWM_init();
 	ADC_init();
 	Motor_init();
-	PID_timer_init();
+	timer0_init();
 	printf("End of init\n");
 
 	// ---- VARIABLE AND STRUCT INITIALIZATION ---- //
 	volatile struct CAN_msg_t message_received;
+	volatile struct CAN_msg_t game_over_msg;
+	game_over_msg.id = 0x01;
+	game_over_msg.length = 1;
+	game_over_msg.data[0] = 0xFF; //should be score
 	struct board_input_t board_input;
 	
 	board_input.motor_speed = 0;
@@ -140,7 +153,6 @@ int main(void)
 	int16_t D_factor = 0;
 	pid_Init(P_factor*SCALING_FACTOR, I_factor*SCALING_FACTOR, D_factor*SCALING_FACTOR, &pid_data);
 	
-	int totGoals = 0;
 	
 	int16_t encoderData;
 	
@@ -148,46 +160,60 @@ int main(void)
 	
 	
 	// ---- LOOP ---- //
+	int8_t IN_GAME = 0;
 	
-	
-	
+	//start game
 	while (1)
 	{
 		_delay_ms(1);
 		if(new_unread_message){
 			CAN_data_recieve(&message_received);
-			if (message_received.id == 0x0f){
-				extract_message_data(&board_input, &message_received);
+			if(message_received.id == 0x02){
+				IN_GAME = 1;
+			}
+		}
+		
+		while(IN_GAME){
+			_delay_ms(1);
+			if(new_unread_message){
+				CAN_data_recieve(&message_received);
+				if (message_received.id == 0x0f){
+					extract_message_data(&board_input, &message_received);
+				}
+			
+				printf("Motor: %i\n", board_input.motor_speed);
+				printf("Servo: %i\n", board_input.servo_position);
+				printf("Solenoid: %i -> %i\n\n", board_input.solenoid_trigger_prev, board_input.solenoid_trigger_curr);
+			
+				//print_message_details(&message_received);
+			
+				PWM_set_compare(board_input.servo_position);
+				if(board_input.solenoid_trigger_prev == 0 & board_input.solenoid_trigger_curr == 1) {
+					Fire_solenoid();
+					timer0_tot_overflow = 0;
+				}
+				new_unread_message = 0;
+			
+			}
+		
+			
+			
+			if(pid_update_flag){
+// 				encoderData = Get_motor_pos();
+// 				pid_output = pid_Controller(board_input.motor_speed*INPUT_MATCH, encoderData, &pid_data);
+// 				printf("pid output: %i\n\n", pid_output/OUTPUT_MATCH);
+				Set_Motor(board_input.motor_speed/1.5);
+				pid_update_flag = 0;
 			}
 			
-			printf("Motor: %i\n", board_input.motor_speed);
-			printf("Servo: %i\n", board_input.servo_position);
-			printf("Solenoid: %i -> %i\n\n", board_input.solenoid_trigger_prev, board_input.solenoid_trigger_curr);
-			
-			//print_message_details(&message_received);
-			
-			PWM_set_compare(board_input.servo_position);
-			if(board_input.solenoid_trigger_prev == 0 & board_input.solenoid_trigger_curr == 1) {
-				Fire_solenoid();
+			if(detect_goal()){
+				//shut off motor
+				Motor_disable();
+				//send game over message
+				CAN_message_send(&game_over_msg);
+				//break game function
+				IN_GAME = 0;
 			}
-			new_unread_message = 0;
-			
 		}
-		
-		if(detect_goal()){
-			totGoals++;
-			printf("\n----  Goal detected!  ----\n\n");
-			printf("----  Total goals: %i  ----\n", totGoals);
-			_delay_ms(1000);
-		}
-		
-		if(pid_update_flag){
-// 			encoderData = Get_motor_pos();
-// 			pid_output = pid_Controller(board_input.motor_speed*INPUT_MATCH, encoderData, &pid_data);
-// 			printf("pid output: %i\n\n", pid_output/OUTPUT_MATCH);
-			Set_Motor(board_input.motor_speed/1.5);
-			pid_update_flag = 0;
-		}
-		
 	}
 }

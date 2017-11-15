@@ -9,8 +9,10 @@
 
 void Motor_init();
 void Set_Motor(int16_t speed);
+void Motor_disable();
 int16_t Get_motor_pos();
 void Fire_solenoid();
+void retract_solenoid();
 
 #ifndef MOTOR_CONTROLLER_H_
 #define MOTOR_CONTROLLER_H_

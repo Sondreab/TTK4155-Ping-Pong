@@ -9,6 +9,7 @@
 #define F_CPU 16000000UL
 #include <util/delay.h>
 #include "DAC_driver.h"
+#include "Timer.h"
 
 void Motor_init(){
 	//set MJ1:EN as output -> atmega:PH4
@@ -52,6 +53,10 @@ void Set_Motor(int16_t speed){
 	
 }
 
+void Motor_disable(){
+	PORTH &= ~(1<<PH4);
+}
+
 int16_t Get_motor_pos(){
 	//set !OE low to enable output of encoder
 	PORTH &= ~(1<<PH5);
@@ -79,7 +84,9 @@ int16_t Get_motor_pos(){
 }
 
 void Fire_solenoid(){
-	PORTF &= ~(1<<PF1);
-	_delay_ms(30);
-	PORTF |= (1<<PF1);
+	PORTF &= ~(1 << PF1);
+}
+
+void retract_solenoid(){
+	PORTF |= (1 << PF1);
 }

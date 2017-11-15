@@ -38,7 +38,7 @@ void PWM_init(){
 
 }
 
-void PID_timer_init(){	
+void timer0_init(){	
 	//Prescale cpu clock by 1/256 -> bottom to top = 4.1 ms
 	TCCR0B &= ~(1 << CS01) & ~(1 << CS00);
 	TCCR0B |= (1 << CS02);
