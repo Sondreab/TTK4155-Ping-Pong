@@ -7,7 +7,7 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include "PWM_driver.h"
+#include "Timer.h"
 
 void PWM_init(){
 	//Set up timer1 with prescaler = 1/8
@@ -31,9 +31,26 @@ void PWM_init(){
 	ICR1H = (40000 >> 8);
 	ICR1L = (40000 & 0xff);
 	
+	//PWM output on PB6 on atmega -> pin12 on shield
 	DDRB |= (1 << PB6);
+
+}
+
+void PID_timer_init(){	
+	//Prescale cpu clock by 1/256 -> bottom to top = 4.1 ms
+	TCCR0B &= ~(1 << CS01) & ~(1 << CS00);
+	TCCR0B |= (1 << CS02);
+	
+	//Enable normal operation Overflow on max = 0xFF
+	TCCR0A &= ~(1 << WGM00) & ~(1 << WGM01);
+	TCCR0B &= ~(1 << WGM02);
 	
 	
+	//Initialize Timer0
+	TCNT0 = 0;
+	
+	//Overflow interrupt enable
+	TIMSK0 = (1 << TOIE0);
 }
 
 void PWM_set_compare(int joy_pos){

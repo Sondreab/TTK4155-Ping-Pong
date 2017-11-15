@@ -14,16 +14,18 @@
 #include "MCP2515.h"
 #include "MCP2515_driver.h"
 #include "CAN_driver.h"
-#include "PWM_driver.h"
+#include "Timer.h"
 #include "ADC_driver.h"
 #include "DAC_driver.h"
 #include "Motor_controller.h"
+#include "PID.h"
 
 
 #define BAUD 9600
 #define MYUBRR (F_CPU/16/BAUD-1)
 
 volatile char new_unread_message = 0;
+volatile char pid_update_flag = 0;
 
 void INTR_init(void){
 	
@@ -46,6 +48,10 @@ void INTR_init(void){
 
 ISR(INT2_vect){
 	new_unread_message = 1;
+}
+
+ISR(TIMER0_OVF_vect){
+	pid_update_flag = 1;
 }
 
 int detect_goal(){
@@ -88,8 +94,8 @@ void print_message_details(struct CAN_msg_t* msg){
 	int joyb = msg->data[5] >> 2;
 	int Lb = ((msg->data[5] & 0b010) >> 1);
 	int Rb = (msg->data[5] & 0b001);
-	printf("\tLeft Slider: %i\n", msg->data[3]);
-	printf("\tRight Slider: %i\n", msg->data[4]);
+	printf("\tLeft Slider: %i\n", (uint8_t)msg->data[3]);
+	printf("\tRight Slider: %i\n", (uint8_t)msg->data[4]);
 	printf("\tButtons: \n\t\tJoy: %i \n\t\tLeft: %i \n\t\tRight: %i\n\n", joyb, Lb, Rb);
 }
 
@@ -103,21 +109,28 @@ int main(void)
 	PWM_init();
 	ADC_init();
 	Motor_init();
+	PID_timer_init();
 	printf("End of init\n");
 
+	// ---- VARIABLE AND STRUCT INITIALIZATION ---- //
 	volatile struct CAN_msg_t message_received;
+	struct PID_DATA pid_data;
+	int16_t P_factor = 1;
+	int16_t I_factor = 1;
+	int16_t D_factor = 0;
+	pid_Init(P_factor*SCALING_FACTOR, I_factor*SCALING_FACTOR, D_factor*SCALING_FACTOR, &pid_data);
+	
 	int totGoals = 0;
 	
-	Fire_solenoid();
+	int16_t encoderData;
 	
-	//while(1){
-		//Set_Motor(0b1, 0x40);
-		//Get_motor_pos();
-		//_delay_ms(2000);
-		//Set_Motor(0b0, 0x40);
-		//Get_motor_pos();
-		//_delay_ms(2000);
-	//}
+	int16_t pid_output;
+	
+	
+	// ---- LOOP ---- //
+	
+	_delay_ms(1000);
+	
 	while (1)
 	{
 		_delay_us(1);
@@ -139,6 +152,14 @@ int main(void)
 			printf("\n----  Goal detected!  ----\n\n");
 			printf("----  Total goals: %i  ----\n", totGoals);
 			_delay_ms(1000);
+		}
+		
+		if(pid_update_flag){
+			encoderData = Get_motor_pos();
+			pid_output = pid_Controller(1*INPUT_MATCH, encoderData, &pid_data);
+			printf("pid output: %i\n", pid_output/OUTPUT_MATCH);
+			Set_Motor(pid_output/LEVEL_MATCH);
+			pid_update_flag = 0;
 		}
 		
 	}

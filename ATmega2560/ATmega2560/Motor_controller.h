@@ -8,8 +8,8 @@
 #include "DAC_driver.h"
 
 void Motor_init();
-void Set_Motor(uint8_t direction, uint8_t speed);
-void Get_motor_pos();
+void Set_Motor(int16_t speed);
+int16_t Get_motor_pos();
 void Fire_solenoid();
 
 #ifndef MOTOR_CONTROLLER_H_

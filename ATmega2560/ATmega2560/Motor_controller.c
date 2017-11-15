@@ -28,23 +28,31 @@ void Motor_init(){
 	PORTF |= (1<<PF1);
 }
 
-void Set_Motor(uint8_t direction, uint8_t speed){
+void Set_Motor(int16_t speed){
 	//enable motor
 	PORTH |= (1<<PH4);
 	//set direction
-	if(direction){
+	if(speed < 0){
+		PORTH &= ~(1<<PH1);
+	} else if(speed > 0){
 		PORTH |= (1<<PH1);
 	} else {
-		PORTH &= ~(1<<PH1);
+		PORTH &= ~(1<<PH4);
 	}
-	//set value
-	DAQ_setOutput(speed);
 	
-	_delay_ms(500);
+	speed = abs(speed);
+	if (speed > 128){
+		speed = 128;
+	}
+	
+	//set value
+	DAQ_setOutput((int8_t)speed);
+	
+	_delay_ms(100);
 	PORTH &= ~(1<<PH4);
 }
 
-void Get_motor_pos(){
+int16_t Get_motor_pos(){
 	//set !OE low to enable output of encoder
 	PORTH &= ~(1<<PH5);
 	//set SEL low to get high byte
@@ -65,7 +73,9 @@ void Get_motor_pos(){
 	//set !OE high to disable reading
 	PORTH |= (1<<PH5);
 	
-	printf("highbyte:%x  lowbyte:%x\n", highbyte, lowbyte);
+	uint16_t result = (highbyte<<8);
+	result += lowbyte;
+	return result;
 }
 
 void Fire_solenoid(){

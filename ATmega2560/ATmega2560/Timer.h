@@ -6,6 +6,7 @@
  */ 
 
 void PWM_init();
+void PID_timer_init();
 void PWM_set_compare(int joy_pos);
 
 

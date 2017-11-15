@@ -147,10 +147,16 @@
     <Compile Include="Motor_controller.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="PWM_driver.c">
+    <Compile Include="PID.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="PWM_driver.h">
+    <Compile Include="PID.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Timer.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Timer.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="main.c">
