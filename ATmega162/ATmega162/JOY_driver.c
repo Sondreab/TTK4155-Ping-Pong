@@ -86,23 +86,23 @@ void JOY_calibrate() {
 	printf("Joystick Y:  ( %i - %i - %i ) %i\n", Ry_min, Mean_y, Ry_max, Range_y);
 }
 
-int JOY_button(int button) {
+int JOY_button(enum JOY_button_t button) {
 	int output = 0;
 	//Button = 0 -> Joystick Button
 	//button = 1 -> Left touchbutton (PB0)
 	//button = 2 -> Right touchbutton (PB1)
 	switch(button){
-		case 0:
+		case JOY_BUTTON:
 		if(!(PINB & (1<<PB0))){
 			output = 1;
 		}
 		break;
-		case 1:
+		case L_BUTTON:
 		if(PINB & (1<<PB1)){
 			output = 1;
 		}
 		break;
-		case 2:
+		case R_BUTTON:
 		if(PINB & (1<<PB2)){
 			output = 1;
 		}
@@ -167,6 +167,52 @@ struct JOY_sliders_t JOY_getSliderPosition(){
 	
 	return sliders;
 }
+
+void JOY_initialize_state(struct JOY_data_t *state){
+	state->position = JOY_getPosition();
+	state->direction = JOY_getDirection();
+	state->sliders = JOY_getSliderPosition();
+	state->joy_button = JOY_button(JOY_BUTTON);
+	state->L_button = JOY_button(L_BUTTON);
+	state->R_button = JOY_button(R_BUTTON);
+}
+
+int JOY_poll_change(struct JOY_data_t *prev, struct JOY_data_t *curr){
+	prev->position = curr->position;
+	prev->direction = curr->direction;
+	prev->sliders = curr->sliders;
+	prev->joy_button = curr->joy_button;
+	prev->L_button = curr->L_button;
+	prev->R_button = curr->R_button;
+	
+	curr->position = JOY_getPosition();
+	curr->direction = JOY_getDirection();
+	curr->sliders = JOY_getSliderPosition();
+	curr->joy_button = JOY_button(JOY_BUTTON);
+	curr->L_button = JOY_button(L_BUTTON);
+	curr->R_button = JOY_button(R_BUTTON);
+	
+	if (prev->position.X != curr->position.X){
+		return 1;
+	}else if (prev->position.Y != curr->position.Y){
+		return 1;
+	}else if (prev->direction != curr->direction){
+		return 1;
+	}else if (prev->sliders.L_slider != curr->sliders.L_slider){
+		return 1;
+	}else if (prev->sliders.R_slider != curr->sliders.R_slider){
+		return 1;
+	}else if (prev->joy_button != curr->joy_button){
+		return 1;
+	}else if (prev->L_button != curr->L_button){
+		return 1;
+	}else if (prev->R_button != curr->R_button){
+		return 1;
+	}
+	
+	return 0;	
+}
+
 
 void JOY_loopedTest(){
 	while(1){

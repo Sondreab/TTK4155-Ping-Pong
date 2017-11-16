@@ -26,6 +26,9 @@
 #define FOSC 4915200// Clock Speed
 #define BAUD 9600
 #define MYUBRR FOSC/16/BAUD-1
+#define GAME_OVER_ID 0x01
+#define GAME_START_ID 0x02
+#define JOY_DATA_ID 0x0F
 
 volatile char new_unread_message;
 
@@ -53,28 +56,72 @@ ISR(INT1_vect){
 }
 
 
-void joystick_message_packager(struct CAN_msg_t* msg)
+void joystick_message_packager(struct JOY_data_t* joy_state, struct CAN_msg_t* msg)
 {
-	msg->id = 0x0f;
+	msg->id = JOY_DATA_ID;
 	msg->length = 6;
-	struct JOY_position_t position = JOY_getPosition();
-	enum JOY_direction_t direction = JOY_getDirection();
-	struct JOY_sliders_t sliders = JOY_getSliderPosition();
-	char buttons = 0b000;
-	for (int button = 0; button < NUM_BUTTONS; button++){
-		buttons |= (JOY_button(button) << (NUM_BUTTONS-(button+1)));
+	
+	uint8_t buttons = (joy_state->joy_button << 2) | (joy_state->L_button << 1) | (joy_state->R_button);
+	
+	msg->data[0] = joy_state->position.X;
+	msg->data[1] = joy_state->position.Y;
+	msg->data[2] = joy_state->direction;
+	msg->data[3] = joy_state->sliders.L_slider;
+	msg->data[4] = joy_state->sliders.R_slider;
+	msg->data[5] = buttons;
+}
+
+int Play_game(struct CAN_msg_t *receive_msg, struct CAN_msg_t *transmit_msg){
+	int score = 0;
+// 	int minutes;
+// 	int seconds;
+	//Implement messages sent from node 2 with score updates?
+	printf("Waiting for game-start-ack from node 2\n");
+	while (new_unread_message==0); //waiting for confirm from node 2
+	new_unread_message = 0;
+	CAN_data_recieve(&receive_msg);
+	if (receive_msg->id != GAME_START_ID){
+		return -1; //Something went wrong
 	}
-	msg->data[0] = position.X;
-	msg->data[1] = position.Y;
-	msg->data[2] = direction;
-	msg->data[3] = sliders.L_slider;
-	msg->data[4] = sliders.R_slider;
-	msg->data[5] = buttons;	
-	_delay_ms(1);
+	
+	printf("Ack received\n\n");
+	
+	volatile struct JOY_data_t previous_joy_state;
+	JOY_initialize_state(&previous_joy_state);
+	volatile struct JOY_data_t current_joy_state;
+	JOY_initialize_state(&current_joy_state);
+	
+	while (1){
+		_delay_us(1);
+		
+		
+		if(JOY_poll_change(&previous_joy_state, &current_joy_state)){
+			joystick_message_packager(&current_joy_state, &transmit_msg);
+			CAN_message_send(&transmit_msg);
+		}
+		
+		if (new_unread_message == 1){
+			CAN_data_recieve(&receive_msg);
+			new_unread_message = 0;
+		}
+		
+		if (receive_msg->id == GAME_OVER_ID){
+			score = receive_msg->data[0];
+			printf("Received game over message\n\n");
+// 			minutes = receive_msg->data[1];
+// 			seconds = receive_msg->data[2];
+			break;
+		}
+		
+		
+				
+	}
+	
+	return score;	
 }
 
 
-int main(void){
+void initialize_node(){
 	UART_Init ( MYUBRR );
 	fdevopen(&UART_Transmit, &UART_Receive);
 	INTR_init();
@@ -84,24 +131,37 @@ int main(void){
 	OLED_init();
 	OLED_reset();
 	CAN_init();
+	printf(" --- End of initialization --- \n\n");
+}
+
+
+int main(void){
+	initialize_node();
 	
 	volatile struct CAN_msg_t transmit_msg;
 	volatile struct CAN_msg_t receive_msg;
 	
-// 	struct JOY_position_t position;
-// 	enum JOY_direction_t direction; 
-// 	struct JOY_sliders_t sliders;
-	
-	while (1) //While game is running
+	while (1)
 	{
-		joystick_message_packager(&transmit_msg);
+		transmit_msg.id = GAME_START_ID;
+		transmit_msg.length = 0;
+		
 		CAN_message_send(&transmit_msg);
 		
-		_delay_ms(25);
+		printf("Start game message sent \n");		
+		
+		
+		Play_game(&receive_msg, &transmit_msg);
+		
+		printf("Game ended, Click LEFT touch button to play again\n\n");
+		
+		while(1){
+			if(JOY_button(1)){
+				printf("Starting game again.\n\n");
+				break;
+			}
+		}
 	}
 	
-	
-	
-
 }
 
