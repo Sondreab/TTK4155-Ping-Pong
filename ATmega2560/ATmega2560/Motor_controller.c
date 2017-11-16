@@ -24,7 +24,7 @@ void Motor_init(){
 	DDRH |= 1<<PH5;
 	//set MJ1:SEL as output -> atmega:PH3
 	DDRH |= 1<<PH3;
-	//set the output used for the solenoid
+	//set the output used for the solenoid [A1 on ADCL on Arduino shield]
 	DDRF |= (1<<PF1);
 	PORTF |= (1<<PF1);
 }

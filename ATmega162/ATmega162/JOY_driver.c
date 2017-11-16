@@ -175,6 +175,7 @@ void JOY_initialize_state(struct JOY_data_t *state){
 	state->joy_button = JOY_button(JOY_BUTTON);
 	state->L_button = JOY_button(L_BUTTON);
 	state->R_button = JOY_button(R_BUTTON);
+
 }
 
 int JOY_poll_change(struct JOY_data_t *prev, struct JOY_data_t *curr){

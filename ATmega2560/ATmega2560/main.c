@@ -23,6 +23,9 @@
 
 #define BAUD 9600
 #define MYUBRR (F_CPU/16/BAUD-1)
+#define GAME_OVER_ID 0x01
+#define GAME_START_ID 0x02
+#define JOY_DATA_ID 0x0F
 
 volatile char new_unread_message = 0;
 volatile char pid_update_flag = 0;
@@ -70,7 +73,7 @@ ISR(TIMER0_OVF_vect){
 
 
 
-int detect_goal(){
+int detect_ball(){
 	int goal_made = 0;
 	if(ADC_filtered_read(10) < 25){
 		goal_made = 1;
@@ -122,41 +125,43 @@ void print_message_details(struct CAN_msg_t* msg){
 	printf("\tButtons: \n\t\tJoy: %i \n\t\tLeft: %i \n\t\tRight: %i\n\n", joyb, Lb, Rb);
 }
 
-int main(void)
-{
+void initialize_node(){
 	UART_Init(MYUBRR);
 	fdevopen(&UART_Transmit, &UART_Receive);
 	DAQ_init();
 	INTR_init();
-	CAN_init();
 	PWM_init();
 	ADC_init();
 	Motor_init();
 	timer0_init();
-	printf("End of init\n");
+	CAN_init();
+	printf(" --- End of initialize ---\n\n");
+	
+}
+
+int main(void)
+{
+	initialize_node();
 
 	// ---- VARIABLE AND STRUCT INITIALIZATION ---- //
-	volatile struct CAN_msg_t message_received;
-	volatile struct CAN_msg_t game_over_msg;
-	game_over_msg.id = 0x01;
-	game_over_msg.length = 1;
-	game_over_msg.data[0] = 0xFF; //should be score
+	volatile struct CAN_msg_t receive_message;
+	volatile struct CAN_msg_t transmit_message;
 	struct board_input_t board_input;
 	
 	board_input.motor_speed = 0;
 	board_input.servo_position = 0;
 	board_input.solenoid_trigger_curr, board_input.solenoid_trigger_prev = 0;
 	
-	struct PID_DATA pid_data;
-	int16_t P_factor = 1;
-	int16_t I_factor = 1;
-	int16_t D_factor = 0;
-	pid_Init(P_factor*SCALING_FACTOR, I_factor*SCALING_FACTOR, D_factor*SCALING_FACTOR, &pid_data);
-	
-	
-	int16_t encoderData;
-	
-	int16_t pid_output;
+// 	struct PID_DATA pid_data;
+// 	int16_t P_factor = 1;
+// 	int16_t I_factor = 1;
+// 	int16_t D_factor = 0;
+// 	pid_Init(P_factor*SCALING_FACTOR, I_factor*SCALING_FACTOR, D_factor*SCALING_FACTOR, &pid_data);
+// 	
+// 	
+// 	int16_t encoderData;
+// 	
+// 	int16_t pid_output;
 	
 	
 	// ---- LOOP ---- //
@@ -167,18 +172,25 @@ int main(void)
 	{
 		_delay_ms(1);
 		if(new_unread_message){
-			CAN_data_recieve(&message_received);
-			if(message_received.id == 0x02){
+			CAN_data_recieve(&receive_message);
+			if(receive_message.id == GAME_START_ID){
 				IN_GAME = 1;
+				printf("Start game message recieved\n");
+				transmit_message.id = GAME_START_ID;
+				transmit_message.length = 0;
+				CAN_message_send(&transmit_message);
+				printf("Ack sent\n");
 			}
+			new_unread_message = 0;
+			
 		}
 		
 		while(IN_GAME){
 			_delay_ms(1);
 			if(new_unread_message){
-				CAN_data_recieve(&message_received);
-				if (message_received.id == 0x0f){
-					extract_message_data(&board_input, &message_received);
+				CAN_data_recieve(&receive_message);
+				if (receive_message.id == 0x0f){
+					extract_message_data(&board_input, &receive_message);
 				}
 			
 				printf("Motor: %i\n", board_input.motor_speed);
@@ -206,11 +218,16 @@ int main(void)
 				pid_update_flag = 0;
 			}
 			
-			if(detect_goal()){
+			if(detect_ball()){
+				printf(" --- Game over --- \n\n");
 				//shut off motor
 				Motor_disable();
 				//send game over message
-				CAN_message_send(&game_over_msg);
+				transmit_message.id = GAME_OVER_ID;
+				transmit_message.length = 1;
+				transmit_message.data[0] = 0xFF; //should be score
+				CAN_message_send(&transmit_message);
+				printf("Game over message sent\n");
 				//break game function
 				IN_GAME = 0;
 			}

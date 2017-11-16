@@ -17,10 +17,8 @@
 
 uint8_t CAN_init() {
 	SPI_MasterInit();
-	mcp2515_reset();	
-	
+	mcp2515_reset();
 	_delay_ms(1);
-	
 	char value = mcp2515_read(MCP_CANSTAT);
 	//self-test
 	if ((value & MODE_MASK) != MODE_CONFIG) {
@@ -28,9 +26,13 @@ uint8_t CAN_init() {
 		return 1;
 	}
 	
-	mcp2515_bit_modify(MCP_CANINTE, MCP_CANINTE_RXB0_ENABLE);
+	_delay_ms(1);
 	mcp2515_bit_modify(MCP_RXB0CTRL, MCP_RXB0CTRL_SET_FILTERS_OFF);
+	_delay_ms(1);
 	mcp2515_bit_modify(MCP_RXB0CTRL, MCP_RXB0CTRL_SET_ROLLOVER_OFF);
+	_delay_ms(1);
+	mcp2515_bit_modify(MCP_CANINTE, MCP_CANINTE_RXB0_ENABLE);
+	_delay_ms(1);
 	
 	mcp2515_bit_modify(MCP_CANCTRL, MCP_CANCTRL_SET_MODE_NORMAL);
 	

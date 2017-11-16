@@ -71,57 +71,8 @@ void joystick_message_packager(struct JOY_data_t* joy_state, struct CAN_msg_t* m
 	msg->data[5] = buttons;
 }
 
-int Play_game(struct CAN_msg_t *receive_msg, struct CAN_msg_t *transmit_msg){
-	int score = 0;
-// 	int minutes;
-// 	int seconds;
-	//Implement messages sent from node 2 with score updates?
-	printf("Waiting for game-start-ack from node 2\n");
-	while (new_unread_message==0); //waiting for confirm from node 2
-	new_unread_message = 0;
-	CAN_data_recieve(&receive_msg);
-	if (receive_msg->id != GAME_START_ID){
-		return -1; //Something went wrong
-	}
-	
-	printf("Ack received\n\n");
-	
-	volatile struct JOY_data_t previous_joy_state;
-	JOY_initialize_state(&previous_joy_state);
-	volatile struct JOY_data_t current_joy_state;
-	JOY_initialize_state(&current_joy_state);
-	
-	while (1){
-		_delay_us(1);
-		
-		
-		if(JOY_poll_change(&previous_joy_state, &current_joy_state)){
-			joystick_message_packager(&current_joy_state, &transmit_msg);
-			CAN_message_send(&transmit_msg);
-		}
-		
-		if (new_unread_message == 1){
-			CAN_data_recieve(&receive_msg);
-			new_unread_message = 0;
-		}
-		
-		if (receive_msg->id == GAME_OVER_ID){
-			score = receive_msg->data[0];
-			printf("Received game over message\n\n");
-// 			minutes = receive_msg->data[1];
-// 			seconds = receive_msg->data[2];
-			break;
-		}
-		
-		
-				
-	}
-	
-	return score;	
-}
 
-
-void initialize_node(){
+int main(void){
 	UART_Init ( MYUBRR );
 	fdevopen(&UART_Transmit, &UART_Receive);
 	INTR_init();
@@ -132,32 +83,87 @@ void initialize_node(){
 	OLED_reset();
 	CAN_init();
 	printf(" --- End of initialization --- \n\n");
-}
-
-
-int main(void){
-	initialize_node();
 	
-	volatile struct CAN_msg_t transmit_msg;
-	volatile struct CAN_msg_t receive_msg;
+	struct CAN_msg_t transmit_msg;
+	struct CAN_msg_t receive_msg;
 	
+	struct JOY_data_t previous_joy_state;
+	JOY_initialize_state(&previous_joy_state);
+// 	previous_joy_state.position.X = 0;
+// 	previous_joy_state.position.Y = 0;
+// 	previous_joy_state.direction = 0;
+// 	previous_joy_state.sliders.L_slider = 0;
+// 	previous_joy_state.sliders.R_slider = 0;
+// 	previous_joy_state.joy_button = 0;
+// 	previous_joy_state.L_button = 0;
+// 	previous_joy_state.R_button = 0;
+	
+	struct JOY_data_t current_joy_state;
+	JOY_initialize_state(&current_joy_state);
+// 	current_joy_state.position.X = 1;
+// 	current_joy_state.position.Y = 0;
+// 	current_joy_state.direction = 0;
+// 	current_joy_state.sliders.L_slider = 0;
+// 	current_joy_state.sliders.R_slider = 0;
+// 	current_joy_state.joy_button = 0;
+// 	current_joy_state.L_button = 0;
+// 	current_joy_state.R_button = 0;
+		
+	int change = 0;
 	while (1)
 	{
+		
+ 		_delay_ms(1000);
+		
 		transmit_msg.id = GAME_START_ID;
 		transmit_msg.length = 0;
 		
 		CAN_message_send(&transmit_msg);
+
+		int score = 0;
+		printf("Waiting for ack\n");
 		
-		printf("Start game message sent \n");		
+		while (new_unread_message==0){
+			_delay_ms(200);
+		} 
 		
+		CAN_data_recieve(&receive_msg);
+		new_unread_message = 0;
+		if (receive_msg.id == GAME_START_ID){
+			printf("Ack received\n\n");
+		}
+
+
+		while (1){
+			_delay_ms(1);
+			
+			change = JOY_poll_change(&previous_joy_state, &current_joy_state);
+			if(change){
+				joystick_message_packager(&current_joy_state, &transmit_msg);
+// 				transmit_msg.id = JOY_DATA_ID;
+// 				transmit_msg.length = 6;
+// 				transmit_msg.data[0] = 0;
+// 				transmit_msg.data[1] = 50;
+// 				transmit_msg.data[2] = 0;
+// 				transmit_msg.data[3] = 3;
+// 				transmit_msg.data[4] = 4;
+// 				transmit_msg.data[5] = 0b000;
+				CAN_message_send(&transmit_msg);
+			}
+			if (new_unread_message == 1){
+				CAN_data_recieve(&receive_msg);
+				new_unread_message = 0;
+				if (receive_msg.id == GAME_OVER_ID){
+					score = receive_msg.data[0];
+					break;
+				}
+			}
+		}
 		
-		Play_game(&receive_msg, &transmit_msg);
-		
-		printf("Game ended, Click LEFT touch button to play again\n\n");
+		printf("LEFT to play again\n\n");
 		
 		while(1){
 			if(JOY_button(1)){
-				printf("Starting game again.\n\n");
 				break;
 			}
 		}

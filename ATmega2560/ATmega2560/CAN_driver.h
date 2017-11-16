@@ -10,8 +10,8 @@
 
 typedef struct CAN_msg_t{
 	unsigned int id;
-	int8_t length;
-	int8_t data[8];
+	uint8_t length;
+	uint8_t data[8];
 	};
 
 uint8_t CAN_init();
