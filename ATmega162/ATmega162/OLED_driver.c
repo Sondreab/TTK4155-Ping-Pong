@@ -52,6 +52,7 @@ void OLED_reset(){
 	for(uint8_t line = 0; line <= 7; line++){
 		OLED_clear_line(line);
 	}
+	OLED_goto_line(0);
 }
 
 void OLED_goto_line(uint8_t line){

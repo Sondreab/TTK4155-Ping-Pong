@@ -16,7 +16,7 @@
 #include "JOY_driver.h"
 
 static menu_t* mainMenu;
-static uint8_t menu_initialized;
+static uint8_t menu_initialized = 0;
 
 menu_t* new_menu(char* name, uint8_t num_submenus){
 	menu_t* m = malloc(sizeof(menu_t));
@@ -41,7 +41,7 @@ void menu_create(void) {
 	mainMenu = new_menu("Main Menu", 3);
 	mainMenu->submenus[0] = new_menu("Play game", 0);
 	mainMenu->submenus[1] = new_menu("Highscores", 0);
-	mainMenu->submenus[2] = new_menu("Reglages", 0);
+	mainMenu->submenus[2] = new_menu("Settings", 0);
 	
 	menu_assign_parents(mainMenu);
 }
@@ -90,7 +90,7 @@ void MENU_controller(void){
 				break;
 		
 		}
-		if (JOY_button(0)==1) {
+		if (JOY_button(JOY_BUTTON)) {
 			printf("You selected menu element ");
 			printf(mainMenu->submenus[arrowPos-1]->name);
 			printf("\n");
