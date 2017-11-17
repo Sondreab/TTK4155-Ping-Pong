@@ -6,6 +6,15 @@
  */ 
 
 
+
+typedef enum STATE_t{
+	NO_ACTION,
+	MENU,
+	PLAY_GAME,
+	SET_BRIGHTNESS,
+	
+}STATE_t;
+
 typedef struct menu_t menu_t;
 
 struct menu_t {
@@ -13,13 +22,14 @@ struct menu_t {
 	struct menu_t* parent;
 	uint8_t num_submenus;
 	struct menu_t** submenus;
+	STATE_t state;
 	};
 	
 	
 
 
 menu_t* MENU_init(void);
-void MENU_controller(void);
+STATE_t MENU_controller(menu_t* menu_ptr);
 void MENU_home(menu_t home_menu);
 void MENU_descend(void);
 void MENU_ascend(void);

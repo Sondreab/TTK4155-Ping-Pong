@@ -16,15 +16,17 @@
 #include "JOY_driver.h"
 
 static menu_t* mainMenu;
+static menu_t* settings;
 static uint8_t menu_initialized = 0;
 
-menu_t* new_menu(char* name, uint8_t num_submenus){
+menu_t* new_menu(char* name, uint8_t num_submenus, STATE_t state){
 	menu_t* m = malloc(sizeof(menu_t));
 	if(num_submenus){
 		m->submenus = malloc(sizeof(menu_t*) * num_submenus);
 	}
 	m->num_submenus = num_submenus;
 	m->name = name;
+	m->state = state;
 	//leave space here for a function-pointer!
 	
 	return m;
@@ -38,10 +40,17 @@ static void menu_assign_parents(menu_t* m){
 }
 
 void menu_create(void) {
-	mainMenu = new_menu("Main Menu", 3);
-	mainMenu->submenus[0] = new_menu("Play game", 0);
-	mainMenu->submenus[1] = new_menu("Highscores", 0);
-	mainMenu->submenus[2] = new_menu("Settings", 0);
+	mainMenu = new_menu("Main Menu", 2, NO_ACTION); 
+	mainMenu->submenus[0] = new_menu("Play game", 0, PLAY_GAME);
+	
+	mainMenu->submenus[1] = new_menu("Settings", 1, NO_ACTION);
+	settings = mainMenu->submenus[1];
+	
+	settings->submenus[0] = new_menu("Brightness", 0, SET_BRIGHTNESS);
+	
+	
+	//mainMenu->submenus[2] = new_menu("Highscores", 0, NULL);
+	
 	
 	menu_assign_parents(mainMenu);
 }
@@ -57,25 +66,28 @@ menu_t* MENU_init(void) {
 
 
 
-void MENU_controller(void){
-	NEW_OLED_print(mainMenu->name);
-	for (uint8_t i = 0; i < mainMenu->num_submenus; i++) {
+STATE_t MENU_controller(menu_t* menu_ptr){
+	STATE_t state = NO_ACTION;
+	printf("%i\n",state);
+	OLED_reset();
+	NEW_OLED_print(menu_ptr->name);
+	for (uint8_t i = 0; i < menu_ptr->num_submenus; i++) {
 		OLED_pos((i+1), 0);
 		NEW_OLED_print("     ");
-		NEW_OLED_print(mainMenu->submenus[i]->name);
+		NEW_OLED_print(menu_ptr->submenus[i]->name);
 		
 	}
 	uint8_t arrowPos = 1;
 	OLED_print_arrow(arrowPos,0);
 	enum JOY_direction_t input;
-	while(1) {
+	while(state == NO_ACTION) {
 		if (arrowPos >0) {
 			OLED_print_arrow(arrowPos,0);
 		}
 		input = JOY_getDirection();
 		switch(input) {
 			case DOWN:
-				if (arrowPos == mainMenu->num_submenus) break;
+				if (arrowPos == menu_ptr->num_submenus) break;
 				OLED_pos(arrowPos,0);
 				NEW_OLED_print("     ");
 				arrowPos++;
@@ -91,14 +103,17 @@ void MENU_controller(void){
 		
 		}
 		if (JOY_button(JOY_BUTTON)) {
-			printf("You selected menu element ");
-			printf(mainMenu->submenus[arrowPos-1]->name);
-			printf("\n");
+			
+			if(menu_ptr->submenus[arrowPos-1]->num_submenus != 0){
+				state = MENU_controller(menu_ptr->submenus[arrowPos-1]);
+			}else{
+				state = menu_ptr->submenus[arrowPos-1]->state;
+			}
 		}
 		_delay_ms(200);
 	}
 	
-	
+	return state;	
 }
 
 

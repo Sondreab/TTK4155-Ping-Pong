@@ -130,33 +130,47 @@ int main(void){
 	CAN_init();
 	printf("-End of init-\n");
 	
-	struct CAN_msg_t transmit_msg;
-	struct CAN_msg_t receive_msg;
-	
-	struct JOY_data_t previous_joy_state;
-	JOY_initialize_state(&previous_joy_state);
-	
-	struct JOY_data_t current_joy_state;
-	JOY_initialize_state(&current_joy_state);
+// 	struct CAN_msg_t transmit_msg;
+// 	struct CAN_msg_t receive_msg;
+// 	
+// 	struct JOY_data_t previous_joy_state;
+// 	JOY_initialize_state(&previous_joy_state);
+// 	
+// 	struct JOY_data_t current_joy_state;
+// 	JOY_initialize_state(&current_joy_state);
 
-	
+	STATE_t STATE = MENU;
 	
 	
 	
 	//------ TESTING OF MENU ------------
+	
+	
 	// -------- END TESTING OF MENU --------
 	while (1){
-	
-// 		menu_t *mainMenu = MENU_init();
-// 		MENU_controller();
-	
-		int score = Play_game(&transmit_msg, &receive_msg, &current_joy_state, &previous_joy_state);
-	
-		while(1){
-			if(JOY_button(1)){
+		menu_t *mainMenu = MENU_init();
+		_delay_ms(500);
+		STATE = MENU_controller(mainMenu);
+		
+		switch(STATE){
+			case PLAY_GAME:
+				printf("%i\n",STATE);
 				break;
-			}
+			case SET_BRIGHTNESS:
+				printf("%i\n",STATE);
+				break;
+			default:
+				break;
 		}
+	
+// 		int score = Play_game(&transmit_msg, &receive_msg, &current_joy_state, &previous_joy_state);
+// 	
+// 		while(1){
+// 			if(JOY_button(1)){
+// 				break;
+// 			}
+// 		}
+
 	}
 
 }
