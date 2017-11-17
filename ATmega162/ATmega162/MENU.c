@@ -17,6 +17,7 @@
 
 static menu_t* mainMenu;
 static menu_t* settings;
+
 static uint8_t menu_initialized = 0;
 
 menu_t* new_menu(char* name, uint8_t num_submenus, STATE_t state){
@@ -27,7 +28,6 @@ menu_t* new_menu(char* name, uint8_t num_submenus, STATE_t state){
 	m->num_submenus = num_submenus;
 	m->name = name;
 	m->state = state;
-	//leave space here for a function-pointer!
 	
 	return m;
 }
@@ -63,17 +63,17 @@ menu_t* MENU_init(void) {
 	return mainMenu;
 }
 
-
-
+static const char spaces[] = "     ";
 
 STATE_t MENU_controller(menu_t* menu_ptr){
+	_delay_ms(500);
 	STATE_t state = NO_ACTION;
 	printf("%i\n",state);
 	OLED_reset();
 	NEW_OLED_print(menu_ptr->name);
 	for (uint8_t i = 0; i < menu_ptr->num_submenus; i++) {
 		OLED_pos((i+1), 0);
-		NEW_OLED_print("     ");
+		NEW_OLED_print(spaces);
 		NEW_OLED_print(menu_ptr->submenus[i]->name);
 		
 	}
@@ -89,13 +89,13 @@ STATE_t MENU_controller(menu_t* menu_ptr){
 			case DOWN:
 				if (arrowPos == menu_ptr->num_submenus) break;
 				OLED_pos(arrowPos,0);
-				NEW_OLED_print("     ");
+				NEW_OLED_print(spaces);
 				arrowPos++;
 				break;
 			case UP:
 				if (arrowPos ==1) break;
 				OLED_pos(arrowPos,0);
-				NEW_OLED_print("     ");
+				NEW_OLED_print(spaces);
 				arrowPos--;
 				break;
 			default:
@@ -103,17 +103,40 @@ STATE_t MENU_controller(menu_t* menu_ptr){
 		
 		}
 		if (JOY_button(JOY_BUTTON)) {
-			
 			if(menu_ptr->submenus[arrowPos-1]->num_submenus != 0){
 				state = MENU_controller(menu_ptr->submenus[arrowPos-1]);
 			}else{
 				state = menu_ptr->submenus[arrowPos-1]->state;
 			}
 		}
-		_delay_ms(200);
+		_delay_ms(20);
 	}
 	
+	OLED_reset();
 	return state;	
+}
+
+static const char set_brightness[] = "Set brightness";
+static const char adjust[] = "LEFT slider to adjust";
+static const char confirm[] = "RIGHT button to confirm";
+
+void MENU_set_brightness(void){
+	OLED_pos(0,0);
+	NEW_OLED_print(set_brightness);
+	
+	OLED_pos(2,0);
+	NEW_OLED_print(adjust);
+	
+	OLED_pos(4,0);
+	NEW_OLED_print(confirm);
+	while(1){
+		_delay_ms(20);
+		struct JOY_sliders_t sliders = JOY_getSliderPosition();
+		OLED_set_brightness(sliders.L_slider);		
+		if (JOY_button(R_BUTTON)){
+			break;
+		}	
+	}
 }
 
 

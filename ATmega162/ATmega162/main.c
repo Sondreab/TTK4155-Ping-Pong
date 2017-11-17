@@ -55,6 +55,10 @@ ISR(INT1_vect){
 	new_unread_message = 1;
 }
 
+ISR(BADISR_vect) {
+	printf("PANIC!\n");
+}
+
 
 void joystick_message_packager(struct JOY_data_t* joy_state, struct CAN_msg_t* msg)
 {
@@ -118,6 +122,9 @@ int Play_game(struct CAN_msg_t* transmit_msg, struct CAN_msg_t* receive_msg, str
 }
 
 
+const char init_complete[] = "-- End of init --\n";
+
+
 int main(void){
 	UART_Init ( MYUBRR );
 	fdevopen(&UART_Transmit, &UART_Receive);
@@ -128,50 +135,50 @@ int main(void){
 	OLED_reset();
 	JOY_init();
 	CAN_init();
-	printf("-End of init-\n");
+	printf(init_complete);
 	
-// 	struct CAN_msg_t transmit_msg;
-// 	struct CAN_msg_t receive_msg;
-// 	
-// 	struct JOY_data_t previous_joy_state;
-// 	JOY_initialize_state(&previous_joy_state);
-// 	
-// 	struct JOY_data_t current_joy_state;
-// 	JOY_initialize_state(&current_joy_state);
+	
+	menu_t *mainMenu = MENU_init();
+	
+ 	struct CAN_msg_t transmit_msg;
+ 	struct CAN_msg_t receive_msg;
+	
+	struct JOY_data_t previous_joy_state;
+	JOY_initialize_state(&previous_joy_state);
+	
+	struct JOY_data_t current_joy_state;
+	JOY_initialize_state(&current_joy_state);
 
 	STATE_t STATE = MENU;
-	
+	int score = 0;
 	
 	
 	//------ TESTING OF MENU ------------
 	
 	
+	_delay_ms(500);
 	// -------- END TESTING OF MENU --------
 	while (1){
-		menu_t *mainMenu = MENU_init();
-		_delay_ms(500);
-		STATE = MENU_controller(mainMenu);
+		
+		
+		
 		
 		switch(STATE){
+				
+			case MENU:
+				STATE = MENU_controller(mainMenu);
+				break;
 			case PLAY_GAME:
-				printf("%i\n",STATE);
+				score = Play_game(&transmit_msg, &receive_msg, &current_joy_state, &previous_joy_state);
+				STATE = MENU;
 				break;
 			case SET_BRIGHTNESS:
-				printf("%i\n",STATE);
+				MENU_set_brightness();
+				STATE = MENU;
 				break;
 			default:
 				break;
 		}
-	
-// 		int score = Play_game(&transmit_msg, &receive_msg, &current_joy_state, &previous_joy_state);
-// 	
-// 		while(1){
-// 			if(JOY_button(1)){
-// 				break;
-// 			}
-// 		}
-
 	}
-
 }
 

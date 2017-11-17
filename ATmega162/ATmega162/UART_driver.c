@@ -37,10 +37,3 @@ int UART_Receive(void){
 	while( !(UCSR0A & (1<<RXC0)) );
 	return UDR0;
 }
-
-void UART_Test(void) {
-	printf("Hello World!");
-	char recievedMessage = UART_Receive();
-	UART_Transmit(recievedMessage);
-}
-

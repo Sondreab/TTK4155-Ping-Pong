@@ -22,7 +22,7 @@ void XMEM_test(void) {
 		uint16_t ext_ram_size = 0x800;
 		uint16_t write_errors = 0;
 		uint16_t retrieval_errors = 0;
-		printf("Starting SRAM test...\n");
+		printf("SRAM test...\n");
 		// rand() stores some internal state, so calling this function in a loop will
 		// yield different seeds each time (unless srand() is called before this function)
 		uint16_t seed = rand();
@@ -34,7 +34,7 @@ void XMEM_test(void) {
 			_delay_us(100);
 			uint8_t retreived_value = ext_ram[i];
 			if (retreived_value != some_value) {
-				printf("Write phase error: ext_ram[%4d] = %02X (should be %02X)\n", i, retreived_value, some_value);
+				printf("Wr. error\n");
 				write_errors++;
 			}
 		}
@@ -45,11 +45,12 @@ void XMEM_test(void) {
 			uint8_t some_value = rand();
 			uint8_t retreived_value = ext_ram[i];
 			if (retreived_value != some_value) {
-				printf("Retrieval phase error: ext_ram[%4d] = %02X (should be %02X)\n", i, retreived_value, some_value);
+				printf("Ret. error\n");
 				retrieval_errors++;
 			}
 		}
-		printf("SRAM test completed with \n%4d errors in write phase and \n%4d errors in retrieval phase \n\n", write_errors, retrieval_errors);
+		printf("SRAM result:");
+		printf("W:%i R:%i\n",write_errors, retrieval_errors );
 }
 
 void XMEM_simple_test(void) {

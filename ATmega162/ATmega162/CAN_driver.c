@@ -14,6 +14,7 @@
 #include "MCP2515.h"
 #include "CAN_driver.h"
 
+static const char init_error[] = "MCP2515 is not in config mode after reset!";
 
 uint8_t CAN_init() {
 	SPI_MasterInit();
@@ -22,7 +23,7 @@ uint8_t CAN_init() {
 	char value = mcp2515_read(MCP_CANSTAT);
 	//self-test
 	if ((value & MODE_MASK) != MODE_CONFIG) {
-		printf("MCP2515 is not in config mode after reset! val: %x\n",value);
+		printf(init_error);
 		return 1;
 	}
 	

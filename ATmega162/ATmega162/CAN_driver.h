@@ -12,7 +12,7 @@ typedef struct CAN_msg_t{
 	unsigned int id;
 	uint8_t length;
 	uint8_t data[8];
-	};
+	}; 
 
 uint8_t CAN_init();
 void CAN_message_send(struct CAN_msg_t* msg);

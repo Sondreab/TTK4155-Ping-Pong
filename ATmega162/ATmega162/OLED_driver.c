@@ -7,7 +7,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <util/delay.h>
 #include <avr/io.h>
 #include "OLED_driver.h"
 #include "fonts.h"
@@ -99,7 +98,7 @@ void OLED_print(char charArray[], size_t size){
 }
 
 void NEW_OLED_print(char* characters) {
-	for (uint8_t element = 0; element < 16; element++) {
+	for (uint8_t element = 0; element < 25; element++) {
 		char character = characters[element];
 		if (character == '\0') {
 			break;
@@ -114,5 +113,6 @@ void NEW_OLED_print(char* characters) {
 }
 
 void OLED_set_brightness(uint8_t lvl){
-	
+	OLED_write_command(0x81);       //contrast  control
+	OLED_write_command(lvl);
 }

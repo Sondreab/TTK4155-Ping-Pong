@@ -54,7 +54,7 @@ int JOY_button(enum JOY_button_t button); //increased code quality
 struct JOY_position_t JOY_getPosition();
 enum JOY_direction_t JOY_getDirection();
 struct JOY_sliders_t JOY_getSliderPosition();
-void JOY_initialize_state(struct JOY_data_t *state);
+void JOY_initialize_state(struct JOY_data_t* joy_state);
 int JOY_poll_change(struct JOY_data_t *prev, struct JOY_data_t *curr);
 void JOY_loopedTest();
 

@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <util/delay.h>
 #include <avr/io.h>
+#include <avr/pgmspace.h>
 #include "ADC_driver.h"
 #include "JOY_driver.h"
 
@@ -26,16 +27,21 @@ static volatile int Ry_min = 0;
 static int Range_y = 255;
 static int Mean_y = 127;
 
+static const char calibrate_query[] = "Calibrate Joystick?\nPress RIGHT touch button to calibrate or LEFT touch button to skip.\n";
+static const char calibrate_start[] = "Entering Calibration.\n";
+static const char calibrate_left[] = "Hold joystick to the LEFT, then press the LEFT touch button\n";
+static const char calibrate_right[] = "Hold joystick to the RIGHT, then press the RIGHT touch button\n";
+static const char calibrate_down[] = "Hold joystick DOWN, then press LEFT touch button\n";
+static const char calibrate_up[] = "Hold joystick UP, then press the RIGHT touch button\n";
 
 void JOY_init(){
 	DDRB &= ~(1<<PB0);
 	DDRB &= ~(1<<PB1);
 	DDRB &= ~(1<<PB2);
-	printf("Calibrate Joystick?\n");
-	printf("Press RIGHT touch button to calibrate or LEFT touch button to skip.\n");
+	printf(calibrate_query);
 	while(1){
 		if(JOY_button(2)){
-			printf("Entering Calibration.\n");
+			printf(calibrate_start);
 			JOY_calibrate();
 			break;
 		}else if(JOY_button(1)){
@@ -45,7 +51,7 @@ void JOY_init(){
 }
 
 void JOY_calibrate() {
-	printf("Hold joystick to the LEFT, then press the LEFT touch button\n");
+	printf(calibrate_left);
 	while(1) {
 		if(JOY_button(1)) {
 			Rx_min = ADC_read(1);
@@ -53,7 +59,7 @@ void JOY_calibrate() {
 		}
 	}
 	
-	printf("Hold joystick to the RIGHT, then press the RIGHT touch button\n");
+	printf(calibrate_right);
 	while(1) {
 		if(JOY_button(2)) {
 			Rx_max = ADC_read(1);
@@ -61,7 +67,7 @@ void JOY_calibrate() {
 		}
 	}
 	
-	printf("Hold joystick DOWN, then press LEFT touch button\n");
+	printf(calibrate_down);
 	while(1) {
 		if(JOY_button(1)) {
 			Ry_min = ADC_read(2);
@@ -69,7 +75,7 @@ void JOY_calibrate() {
 		}
 	}
 	
-	printf("Hold joystick UP, then press the RIGHT touch button\n");
+	printf(calibrate_up);
 	while(1) {
 		if(JOY_button(2)) {
 			Ry_max = ADC_read(2);
@@ -168,13 +174,13 @@ struct JOY_sliders_t JOY_getSliderPosition(){
 	return sliders;
 }
 
-void JOY_initialize_state(struct JOY_data_t *state){
-	state->position = JOY_getPosition();
-	state->direction = JOY_getDirection();
-	state->sliders = JOY_getSliderPosition();
-	state->joy_button = JOY_button(JOY_BUTTON);
-	state->L_button = JOY_button(L_BUTTON);
-	state->R_button = JOY_button(R_BUTTON);
+void JOY_initialize_state(struct JOY_data_t* joy_state){
+	joy_state->position = JOY_getPosition();
+	joy_state->direction = JOY_getDirection();
+	joy_state->sliders = JOY_getSliderPosition();
+	joy_state->joy_button = JOY_button(JOY_BUTTON);
+	joy_state->L_button = JOY_button(L_BUTTON);
+	joy_state->R_button = JOY_button(R_BUTTON);
 
 }
 
@@ -212,18 +218,4 @@ int JOY_poll_change(struct JOY_data_t *prev, struct JOY_data_t *curr){
 	}
 	
 	return 0;	
-}
-
-
-void JOY_loopedTest(){
-	while(1){
-		struct JOY_position_t position = JOY_getPosition();
-		enum JOY_direction_t direction = JOY_getDirection();
-		struct JOY_sliders_t sliders = JOY_getSliderPosition();
-		printf("( %i , %i ) - DIR:  %i \n", position.X, position.Y, direction);
-		printf("Slider: (%i, %i)\n", sliders.L_slider, sliders.R_slider);
-		printf("ButtonL: %i \nButtonR: %i\n JOYButton:%i\n", JOY_button(1), JOY_button(2), JOY_button(0));
-		
-		_delay_ms(1000);
-	}
 }
