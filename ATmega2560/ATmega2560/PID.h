@@ -6,8 +6,6 @@
  * code borrowed from AVR221 doc
  */
 #define SCALING_FACTOR 128
-#define INPUT_MATCH 5
-#define OUTPUT_MATCH 327
 
 typedef struct PID_DATA {
 	//! Last process value, used to find derivative of process value.
