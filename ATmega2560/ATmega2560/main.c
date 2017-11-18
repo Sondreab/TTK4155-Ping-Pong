@@ -23,9 +23,6 @@
 
 #define BAUD 9600
 #define MYUBRR (F_CPU/16/BAUD-1)
-#define GAME_OVER_ID 0x01
-#define GAME_START_ID 0x02
-#define JOY_DATA_ID 0x0F
 
 volatile char new_unread_message = 0;
 volatile char pid_update_flag = 0;
@@ -33,9 +30,9 @@ volatile char timer0_tot_overflow = 0;
 
 typedef struct board_input_t{
 	int8_t motor_speed;
-	int8_t servo_position;
-	int8_t solenoid_trigger_prev;
-	int8_t solenoid_trigger_curr;	
+	uint8_t servo_position;
+	uint8_t solenoid_trigger_prev;
+	uint8_t solenoid_trigger_curr;	
 	};
 
 void INTR_init(void){
@@ -75,55 +72,33 @@ ISR(TIMER0_OVF_vect){
 
 int detect_ball(){
 	int goal_made = 0;
-	if(ADC_filtered_read(10) < 25){
+	if(ADC_filtered_read(10) < 15){
 		goal_made = 1;
 	}
 	return goal_made;
 }
 
-void extract_message_data(struct board_input_t* board_input, struct CAN_msg_t* msg){
-	board_input->motor_speed = msg->data[0];
-	board_input->servo_position = msg->data[1];							//NOT FINALIZED
+void format_board_input(struct board_input_t* board_input, struct CAN_msg_t* msg){
+	//CONVERSION ONLY FOR SPEED CONTROL
+	float motor_speed = (msg->data[0] - 127)*100;
+	motor_speed = motor_speed/(127);
+	if((motor_speed < 15) & (motor_speed > -15)){
+		motor_speed = 0;
+	}
+	
+	board_input->motor_speed = motor_speed;
+	board_input->servo_position = msg->data[1];							
 	board_input->solenoid_trigger_prev = board_input->solenoid_trigger_curr;
-	board_input->solenoid_trigger_curr = (msg->data[5] >> 2);		//NOT FINALIZED
+	board_input->solenoid_trigger_curr = msg->data[2];		
 }
 
-void print_message_details(struct CAN_msg_t* msg){
-	printf("Received ID: %i\n", msg->id);
-	
-	printf("\tX: %i\n", msg->data[0]);
-	printf("\tY: %i\n", msg->data[1]);
-// 	switch (msg->data[3]){
-// 		case 0:
-// 		printf("\tDir: NEUTRAL\n");
-// 		break;
-// 		
-// 		case 1:
-// 		printf("\tDir: UP\n");
-// 		break;
-// 		
-// 		case 2:
-// 		printf("\tDir: RIGHT\n");
-// 		break;
-// 		
-// 		case 3:
-// 		printf("\tDir: DOWN\n");
-// 		break;
-// 		
-// 		case 4:
-// 		printf("\tDir: LEFT\n");
-// 		break;
-// 		
-// 		default:
-// 		break;
-// 	}
-	int joyb = msg->data[5] >> 2;
-	int Lb = ((msg->data[5] & 0b010) >> 1);
-	int Rb = (msg->data[5] & 0b001);
-	printf("\tLeft Slider: %i\n", (uint8_t)msg->data[3]);
-	printf("\tRight Slider: %i\n", (uint8_t)msg->data[4]);
-	printf("\tButtons: \n\t\tJoy: %i \n\t\tLeft: %i \n\t\tRight: %i\n\n", joyb, Lb, Rb);
+
+void print_board_input(struct board_input_t* board_input){
+	printf("Motor: %i\n", board_input->motor_speed);
+	printf("Servo: %i\n", board_input->servo_position);
+	printf("Solenoid: %i -> %i\n\n", board_input->solenoid_trigger_prev, board_input->solenoid_trigger_curr);
 }
+
 
 void initialize_node(){
 	UART_Init(MYUBRR);
@@ -189,15 +164,11 @@ int main(void)
 			_delay_ms(1);
 			if(new_unread_message){
 				CAN_data_recieve(&receive_message);
-				if (receive_message.id == 0x0f){
-					extract_message_data(&board_input, &receive_message);
+				if (receive_message.id == JOY_DATA_ID){
+					format_board_input(&board_input, &receive_message);
 				}
 			
-				printf("Motor: %i\n", board_input.motor_speed);
-				printf("Servo: %i\n", board_input.servo_position);
-				printf("Solenoid: %i -> %i\n\n", board_input.solenoid_trigger_prev, board_input.solenoid_trigger_curr);
-			
-				//print_message_details(&message_received);
+				print_board_input(&board_input);
 			
 				PWM_set_compare(board_input.servo_position);
 				if(board_input.solenoid_trigger_prev == 0 & board_input.solenoid_trigger_curr == 1) {
@@ -214,7 +185,7 @@ int main(void)
 // 				encoderData = Get_motor_pos();
 // 				pid_output = pid_Controller(board_input.motor_speed*INPUT_MATCH, encoderData, &pid_data);
 // 				printf("pid output: %i\n\n", pid_output/OUTPUT_MATCH);
-				Set_Motor(board_input.motor_speed/1.5);
+				Set_Motor(board_input.motor_speed*1.2);
 				pid_update_flag = 0;
 			}
 			

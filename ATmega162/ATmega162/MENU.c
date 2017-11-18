@@ -104,7 +104,7 @@ STATE_t MENU_controller(menu_t* menu_ptr){
 		}
 		
 		//detect change instead of detect active?
-		if (JOY_button(JOY_BUTTON)) {
+		if (JOY_button(R_BUTTON)) {
 			if(menu_ptr->submenus[arrowPos-1]->num_submenus != 0){
 				state = MENU_controller(menu_ptr->submenus[arrowPos-1]);
 			}else{

@@ -68,7 +68,7 @@ void joystick_message_packager(struct JOY_data_t* joy_state, struct CAN_msg_t* m
 		default:
 			
 		case 1:
-		msg->data[0] = joy_state->sliders.L_slider;
+		msg->data[0] = joy_state->sliders.R_slider;
 		msg->data[1] = joy_state->position.X;
 		msg->data[2] = joy_state->R_button;
 		break;
