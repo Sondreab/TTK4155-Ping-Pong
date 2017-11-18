@@ -8,6 +8,10 @@
 #ifndef CAN_DRIVER_H_
 #define CAN_DRIVER_H_
 
+#define GAME_OVER_ID 0x01
+#define GAME_START_ID 0x02
+#define JOY_DATA_ID 0x0F
+
 typedef struct CAN_msg_t{
 	unsigned int id;
 	uint8_t length;

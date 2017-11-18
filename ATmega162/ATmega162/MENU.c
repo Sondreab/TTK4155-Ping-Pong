@@ -63,7 +63,7 @@ menu_t* MENU_init(void) {
 	return mainMenu;
 }
 
-static const char spaces[] = "     ";
+static const char spaces_str[] = "     ";
 
 STATE_t MENU_controller(menu_t* menu_ptr){
 	_delay_ms(500);
@@ -73,7 +73,7 @@ STATE_t MENU_controller(menu_t* menu_ptr){
 	NEW_OLED_print(menu_ptr->name);
 	for (uint8_t i = 0; i < menu_ptr->num_submenus; i++) {
 		OLED_pos((i+1), 0);
-		NEW_OLED_print(spaces);
+		NEW_OLED_print(spaces_str);
 		NEW_OLED_print(menu_ptr->submenus[i]->name);
 		
 	}
@@ -89,20 +89,22 @@ STATE_t MENU_controller(menu_t* menu_ptr){
 			case DOWN:
 				if (arrowPos == menu_ptr->num_submenus) break;
 				OLED_pos(arrowPos,0);
-				NEW_OLED_print(spaces);
+				NEW_OLED_print(spaces_str);
 				arrowPos++;
 				break;
 			case UP:
 				if (arrowPos ==1) break;
 				OLED_pos(arrowPos,0);
-				NEW_OLED_print(spaces);
+				NEW_OLED_print(spaces_str);
 				arrowPos--;
 				break;
 			default:
 				break;
 		
 		}
-		if (JOY_button(JOY_BUTTON)) {
+		
+		//detect change instead of detect active?
+		if (JOY_button(R_BUTTON)) {
 			if(menu_ptr->submenus[arrowPos-1]->num_submenus != 0){
 				state = MENU_controller(menu_ptr->submenus[arrowPos-1]);
 			}else{
@@ -116,19 +118,19 @@ STATE_t MENU_controller(menu_t* menu_ptr){
 	return state;	
 }
 
-static const char set_brightness[] = "Set brightness";
-static const char adjust[] = "LEFT slider to adjust";
-static const char confirm[] = "RIGHT button to confirm";
+static const char set_brightness_str[] = "Set brightness";
+static const char adjust_str[] = "LEFT slider to adjust";
+static const char confirm_str[] = "RIGHT button to confirm";
 
 void MENU_set_brightness(void){
 	OLED_pos(0,0);
-	NEW_OLED_print(set_brightness);
+	NEW_OLED_print(set_brightness_str);
 	
 	OLED_pos(2,0);
-	NEW_OLED_print(adjust);
+	NEW_OLED_print(adjust_str);
 	
 	OLED_pos(4,0);
-	NEW_OLED_print(confirm);
+	NEW_OLED_print(confirm_str);
 	while(1){
 		_delay_ms(20);
 		struct JOY_sliders_t sliders = JOY_getSliderPosition();

@@ -57,8 +57,8 @@ void timer0_init(){
 
 void PWM_set_compare(int joy_pos){
 	
-	//Convert joystick position [-100, 100] to compare level [2000, 4000] = [1 ms, 2 ms]	
-	uint16_t compare_level = 3000 + joy_pos*10;
+	//Convert joystick position [0, 255] to compare level [2000, 4000] = [1 ms, 2 ms]	
+	uint16_t compare_level = 4000 - (float)(joy_pos*(2000.0/255.0)); // 2000/255 = 7,84
 	
 	
 	//Safety measure to protect hardware

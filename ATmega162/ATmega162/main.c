@@ -26,9 +26,7 @@
 #define FOSC 4915200// Clock Speed
 #define BAUD 9600
 #define MYUBRR FOSC/16/BAUD-1
-#define GAME_OVER_ID 0x01
-#define GAME_START_ID 0x02
-#define JOY_DATA_ID 0x0F
+
 
 volatile char new_unread_message;
 
@@ -62,17 +60,20 @@ ISR(BADISR_vect) {
 
 void joystick_message_packager(struct JOY_data_t* joy_state, struct CAN_msg_t* msg)
 {
+	int settings = 1;
 	msg->id = JOY_DATA_ID;
-	msg->length = 6;
+	msg->length = 3;
+	switch(settings){
+		//User defined settings cases
+		default:
+			
+		case 1:
+		msg->data[0] = joy_state->sliders.R_slider;
+		msg->data[1] = joy_state->position.X;
+		msg->data[2] = joy_state->R_button;
+		break;
+	}
 	
-	uint8_t buttons = (joy_state->joy_button << 2) | (joy_state->L_button << 1) | (joy_state->R_button);
-	
-	msg->data[0] = joy_state->position.X;
-	msg->data[1] = joy_state->position.Y;
-	msg->data[2] = joy_state->direction;
-	msg->data[3] = joy_state->sliders.L_slider;
-	msg->data[4] = joy_state->sliders.R_slider;
-	msg->data[5] = buttons;
 }
 
 int Play_game(struct CAN_msg_t* transmit_msg, struct CAN_msg_t* receive_msg, struct JOY_data_t* current_joy_state, struct JOY_data_t* previous_joy_state){
@@ -122,8 +123,9 @@ int Play_game(struct CAN_msg_t* transmit_msg, struct CAN_msg_t* receive_msg, str
 }
 
 
-const char init_complete[] = "-- End of init --\n";
-
+const char init_complete_str[] = "-- End of init --\n";
+const char game_over_str[] = "         Game Over!       ";
+const char score_str[] = "         Score: ";
 
 int main(void){
 	UART_Init ( MYUBRR );
@@ -135,7 +137,7 @@ int main(void){
 	OLED_reset();
 	JOY_init();
 	CAN_init();
-	printf(init_complete);
+	printf(init_complete_str);
 	
 	
 	menu_t *mainMenu = MENU_init();
@@ -150,7 +152,7 @@ int main(void){
 	JOY_initialize_state(&current_joy_state);
 
 	STATE_t STATE = MENU;
-	int score = 0;
+	int score = 743;
 	
 	
 	//------ TESTING OF MENU ------------
@@ -170,10 +172,22 @@ int main(void){
 				break;
 			case PLAY_GAME:
 				score = Play_game(&transmit_msg, &receive_msg, &current_joy_state, &previous_joy_state);
-				STATE = MENU;
+				STATE = GAME_OVER;
 				break;
 			case SET_BRIGHTNESS:
 				MENU_set_brightness();
+				STATE = MENU;
+				break;
+			case GAME_OVER:
+				OLED_reset();
+				OLED_pos(1,0);
+				NEW_OLED_print(game_over_str);
+				char score_chars[3];
+				itoa(score, score_chars, 10);
+				OLED_pos(2,0);
+				NEW_OLED_print(score_str);
+				NEW_OLED_print(score_chars);
+				_delay_ms(3000);
 				STATE = MENU;
 				break;
 			default:
