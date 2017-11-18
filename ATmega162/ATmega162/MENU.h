@@ -7,11 +7,12 @@
 
 
 
-typedef enum STATE_t{
+typedef enum{
 	NO_ACTION,
 	MENU,
 	PLAY_GAME,
 	SET_BRIGHTNESS,
+	GAME_OVER,
 	
 }STATE_t;
 

@@ -5,6 +5,12 @@
  *  Author: hploubat
  */ 
 
+typedef enum{
+	X_JOY = 1,
+	Y_JOY,
+	L_SLIDER,
+	R_SLIDER,	
+}ADC_CHANNEL_t;
 
 void INTR_init(void);
 uint8_t ADC_read(uint8_t channel);
