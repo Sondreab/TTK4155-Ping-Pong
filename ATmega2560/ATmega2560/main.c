@@ -185,7 +185,7 @@ int main(void)
 // 				encoderData = Get_motor_pos();
 // 				pid_output = pid_Controller(board_input.motor_speed*INPUT_MATCH, encoderData, &pid_data);
 // 				printf("pid output: %i\n\n", pid_output/OUTPUT_MATCH);
-				Set_Motor(board_input.motor_speed*1.2);
+				Set_Motor(board_input.motor_speed);
 				pid_update_flag = 0;
 			}
 			

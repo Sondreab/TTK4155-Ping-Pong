@@ -34,7 +34,7 @@ void PWM_init(){
 	//PWM output on PB6 on atmega -> pin12 on shield
 	DDRB |= (1 << PB6);
 	
-	PWM_set_compare(0);
+	PWM_set_compare(127); //centre of [0, 255]
 
 }
 
