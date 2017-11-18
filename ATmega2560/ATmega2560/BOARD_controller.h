@@ -7,6 +7,7 @@
 
 
 void BOARD_motor_init();
+void static BOARD_centre_motor(int board_width);
 int static BOARD_motor_to_edge(int direction);
 int BOARD_initialize_for_game();
 void BOARD_set_motor(int16_t speed);

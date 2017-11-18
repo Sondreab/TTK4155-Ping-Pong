@@ -141,11 +141,11 @@ int main(void)
 	
 	int16_t pid_output;
 	
-	
+	int16_t current_pos;
+	int16_t board_width;
 	
 	_delay_ms(1000);
 		
-	
 	// ---- LOOP ---- //
 	int8_t IN_GAME = 0;
 	
@@ -159,8 +159,10 @@ int main(void)
 				IN_GAME = 1;
 				printf("Start game message recieved\n");
 				
-// 				int result = BOARD_initialize_for_game();
-// 				printf("board width: %i\n", result);
+				board_width = BOARD_initialize_for_game();
+				printf("board width: %i\n", board_width);
+				
+				current_pos = board_width/2;
 				
 				transmit_message.id = GAME_START_ID;
 				transmit_message.length = 0;
@@ -180,7 +182,7 @@ int main(void)
 					format_board_input(&board_input, &receive_message);
 				}
 			
-				print_board_input(&board_input);
+				//print_board_input(&board_input);
 			
 				PWM_set_compare(board_input.servo_position);
 				if(board_input.solenoid_trigger_prev == 0 & board_input.solenoid_trigger_curr == 1) {
@@ -194,7 +196,9 @@ int main(void)
 			
 			
 			if(pid_update_flag){
-// 				encoderData = Get_motor_pos();
+ 				encoderData = BOARD_get_motor_pos();
+				current_pos += encoderData;
+				printf("%i\n",current_pos);
 // 				pid_output = pid_Controller(board_input.motor_speed*INPUT_MATCH, encoderData, &pid_data);
 // 				printf("pid output: %i\n\n", pid_output/OUTPUT_MATCH);
 				BOARD_set_Motor(board_input.motor_speed);
