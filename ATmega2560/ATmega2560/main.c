@@ -28,8 +28,11 @@ volatile char new_unread_message = 0;
 volatile char pid_update_flag = 0;
 volatile char timer0_tot_overflow = 0;
 
+volatile char fixed_interval_flag = 0;
+volatile char timer_fixed_interval = 0;
+
 typedef struct board_input_t{
-	int8_t motor_speed;
+	uint8_t motor_pos;
 	uint8_t servo_position;
 	uint8_t solenoid_trigger_prev;
 	uint8_t solenoid_trigger_curr;	
@@ -61,10 +64,15 @@ ISR(INT2_vect){
 ISR(TIMER0_OVF_vect){
 	pid_update_flag = 1;
 	timer0_tot_overflow++;
+	timer_fixed_interval++;
 	if(timer0_tot_overflow > 70){
 		timer0_tot_overflow = 0;
 		BOARD_retract_solenoid();
+	}else if(timer_fixed_interval > 210){
+		timer_fixed_interval = 0;
+		fixed_interval_flag = 1;		
 	}
+	
 	
 }
 
@@ -80,16 +88,16 @@ int detect_ball(){
 
 void format_board_input(struct board_input_t* board_input, struct CAN_msg_t* msg){
 	//CONVERSION ONLY FOR SPEED CONTROL
-	float motor_speed = (msg->data[0] - 127)*100;
-	motor_speed = -motor_speed/(127);
-	if((motor_speed < 15) & (motor_speed > -15)){
-		motor_speed = 0;
-	}
+// 	float motor_speed = (msg->data[0] - 127)*100;
+// 	motor_speed = -motor_speed/(127);
+// 	if((motor_speed < 15) & (motor_speed > -15)){
+// 		motor_speed = 0;
+// 	}
 	
 	//CONVERSION FOR POSITION CONTROL
-//	uint8_t motor_pos = 255 - msg->data[0];
+	uint8_t motor_pos = 255 - msg->data[0];
 	
-	board_input->motor_speed = motor_speed;
+	board_input->motor_pos = motor_pos;
 	board_input->servo_position = msg->data[1];							
 	board_input->solenoid_trigger_prev = board_input->solenoid_trigger_curr;
 	board_input->solenoid_trigger_curr = msg->data[2];		
@@ -97,7 +105,7 @@ void format_board_input(struct board_input_t* board_input, struct CAN_msg_t* msg
 
 
 void print_board_input(struct board_input_t* board_input){
-	printf("Motor: %i\n", board_input->motor_speed);
+	printf("Motor: %i\n", board_input->motor_pos);
 	printf("Servo: %i\n", board_input->servo_position);
 	printf("Solenoid: %i -> %i\n\n", board_input->solenoid_trigger_prev, board_input->solenoid_trigger_curr);
 }
@@ -126,20 +134,21 @@ int main(void)
 	volatile struct CAN_msg_t transmit_message;
 	struct board_input_t board_input;
 	
-	board_input.motor_speed = 0;
+	board_input.motor_pos = 0;
 	board_input.servo_position = 0;
 	board_input.solenoid_trigger_curr, board_input.solenoid_trigger_prev = 0;
 	
 	struct PID_DATA pid_data;
-	int16_t P_factor = 1;
-	int16_t I_factor = 1;
+	int16_t P_factor = 1; //100 was the last we tried
+	int16_t I_factor = 0;   //1 breaks the whole thing
 	int16_t D_factor = 0;
 	pid_Init(P_factor*SCALING_FACTOR, I_factor*SCALING_FACTOR, D_factor*SCALING_FACTOR, &pid_data);
 	
 	
 	int16_t encoderData;
 	
-	int16_t pid_output;
+	int16_t pid_input = 0;
+	int16_t pid_output = 0;
 	
 	int16_t current_pos;
 	int16_t board_width;
@@ -192,22 +201,40 @@ int main(void)
 				new_unread_message = 0;
 			
 			}
-		
+			
+			if (fixed_interval_flag){
+				printf("Motor: %i\n", board_input.motor_pos);
+				printf("pos: %i\n",current_pos);
+				printf("in: %i\n", pid_input);
+				printf("out: %i\n", pid_output);
+				printf("\n");
+				fixed_interval_flag = 0;
+			}
+			
 			
 			
 			if(pid_update_flag){
- 				encoderData = BOARD_get_motor_pos();
+ 				encoderData = (BOARD_get_motor_pos()/125);
 				current_pos += encoderData;
-				printf("%i\n",current_pos);
-// 				pid_output = pid_Controller(board_input.motor_speed*INPUT_MATCH, encoderData, &pid_data);
-// 				printf("pid output: %i\n\n", pid_output/OUTPUT_MATCH);
-				BOARD_set_Motor(board_input.motor_speed);
+				if(current_pos > board_width){
+					current_pos = board_width;
+				}else if(current_pos < 0){
+					current_pos = 0;
+				}
+				
+				pid_input = board_input.motor_pos*(board_width/255);
+ 				pid_output = pid_Controller(pid_input, current_pos, &pid_data);
+				 
+				
+ 	
+				BOARD_set_motor(pid_output/2);
 				pid_update_flag = 0;
 			}
 			
 			if(detect_ball()){
 				printf(" --- Game over --- \n\n");
 				//shut off motor
+				BOARD_set_motor(0b0);
 				BOARD_motor_disable();
 				//send game over message
 				transmit_message.id = GAME_OVER_ID;

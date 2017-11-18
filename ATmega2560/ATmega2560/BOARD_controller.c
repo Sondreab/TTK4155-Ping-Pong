@@ -36,7 +36,7 @@ void static BOARD_centre_motor(int board_width){
 	int current_pos = board_width;
 	int count_not_moving = 0;
 	int temp = 0;
-	BOARD_set_Motor(-60);
+	BOARD_set_motor(-60);
 	_delay_ms(100);
 	while(count_not_moving < 10){
 		temp = BOARD_get_motor_pos();
@@ -51,7 +51,7 @@ void static BOARD_centre_motor(int board_width){
 		}
 	}
 	printf("current pos: %i\n", current_pos);
-	BOARD_set_Motor(0);
+	BOARD_set_motor(0);
 	BOARD_motor_disable();
 }
 
@@ -59,7 +59,7 @@ int static BOARD_motor_to_edge(int direction){
 	int board_width = 0;
 	int count_not_moving = 0;
 	int temp = 0;
-	BOARD_set_Motor(direction*70);
+	BOARD_set_motor(direction*70);
 	_delay_ms(100);
 	while(count_not_moving < 10){
 		temp = BOARD_get_motor_pos();
@@ -70,7 +70,7 @@ int static BOARD_motor_to_edge(int direction){
 		board_width += (temp/125);
 		_delay_ms(1);
 	}
-	BOARD_set_Motor(0);
+	BOARD_set_motor(0);
 	BOARD_motor_disable();
 	return board_width;
 }
@@ -95,7 +95,7 @@ int BOARD_initialize_for_game(){
 	return board_width;
 }
 
-void BOARD_set_Motor(int16_t speed){
+void BOARD_set_motor(int16_t speed){
 	//enable motor
 	PORTH |= (1<<PH4);
 	//set direction
