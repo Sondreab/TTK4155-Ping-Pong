@@ -141,10 +141,10 @@
     <Compile Include="DAC_driver.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="Motor_controller.c">
+    <Compile Include="BOARD_controller.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="Motor_controller.h">
+    <Compile Include="BOARD_controller.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="PID.c">

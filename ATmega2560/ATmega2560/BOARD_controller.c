@@ -11,7 +11,7 @@
 #include "DAC_driver.h"
 #include "Timer.h"
 
-void Motor_init(){
+void BOARD_motor_init(){
 	//set MJ1:EN as output -> atmega:PH4
 	DDRH |= 1<<PH4;
 	//set MJ1:dir as output -> atmega:PH1
@@ -27,17 +27,58 @@ void Motor_init(){
 	//set the output used for the solenoid [A1 on ADCL on Arduino shield]
 	DDRF |= (1<<PF1);
 	PORTF |= (1<<PF1);
+	
+// 	BOARD_set_Motor(0);
+// 	BOARD_motor_disable();
 }
 
-void Set_Motor(int16_t speed){
+int static BOARD_motor_to_edge(int direction){
+	int board_width = 0;
+	int count_not_moving = 0;
+	int temp = 0;
+	BOARD_set_Motor(direction*65);
+	_delay_ms(5);
+	while(count_not_moving < 5){
+		temp = BOARD_get_motor_pos();
+		if(temp == 0){
+			count_not_moving++;
+		}
+		
+		board_width += (temp/125);
+		_delay_ms(1);
+	}
+	
+	count_not_moving = 0;
+	BOARD_set_Motor(0);
+	BOARD_motor_disable();
+	return board_width;
+}
+
+int BOARD_initialize_for_game(){
+	int board_width = 0;
+	
+	board_width = BOARD_motor_to_edge(-1);
+	
+	printf("Right edge\n");
+	
+	_delay_ms(1000);
+	
+	board_width = BOARD_motor_to_edge(1);
+	
+	printf("Left edge\n");
+	
+	return board_width;
+}
+
+void BOARD_set_Motor(int16_t speed){
 	//enable motor
 	PORTH |= (1<<PH4);
 	//set direction
 	if(speed < 0){
-		PORTH &= ~(1<<PH1);
+		PORTH |= (1<<PH1);
 		speed = -speed;
 	} else if(speed > 0){
-		PORTH |= (1<<PH1);
+		PORTH &= ~(1<<PH1);
 	} else if(speed == 0){
 		PORTH &= ~(1<<PH4);
 	}
@@ -53,11 +94,11 @@ void Set_Motor(int16_t speed){
 	
 }
 
-void Motor_disable(){
+void BOARD_motor_disable(){
 	PORTH &= ~(1<<PH4);
 }
 
-int16_t Get_motor_pos(){
+int16_t BOARD_get_motor_pos(){
 	//set !OE low to enable output of encoder
 	PORTH &= ~(1<<PH5);
 	//set SEL low to get high byte
@@ -83,10 +124,10 @@ int16_t Get_motor_pos(){
 	return result;
 }
 
-void Fire_solenoid(){
+void BOARD_fire_solenoid(){
 	PORTF &= ~(1 << PF1);
 }
 
-void retract_solenoid(){
+void BOARD_retract_solenoid(){
 	PORTF |= (1 << PF1);
 }

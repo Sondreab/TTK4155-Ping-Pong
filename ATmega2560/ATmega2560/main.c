@@ -17,7 +17,7 @@
 #include "Timer.h"
 #include "ADC_driver.h"
 #include "DAC_driver.h"
-#include "Motor_controller.h"
+#include "BOARD_controller.h"
 #include "PID.h"
 
 
@@ -63,7 +63,7 @@ ISR(TIMER0_OVF_vect){
 	timer0_tot_overflow++;
 	if(timer0_tot_overflow > 70){
 		timer0_tot_overflow = 0;
-		retract_solenoid();
+		BOARD_retract_solenoid();
 	}
 	
 }
@@ -81,10 +81,13 @@ int detect_ball(){
 void format_board_input(struct board_input_t* board_input, struct CAN_msg_t* msg){
 	//CONVERSION ONLY FOR SPEED CONTROL
 	float motor_speed = (msg->data[0] - 127)*100;
-	motor_speed = motor_speed/(127);
+	motor_speed = -motor_speed/(127);
 	if((motor_speed < 15) & (motor_speed > -15)){
 		motor_speed = 0;
 	}
+	
+	//CONVERSION FOR POSITION CONTROL
+//	uint8_t motor_pos = 255 - msg->data[0];
 	
 	board_input->motor_speed = motor_speed;
 	board_input->servo_position = msg->data[1];							
@@ -107,7 +110,7 @@ void initialize_node(){
 	INTR_init();
 	PWM_init();
 	ADC_init();
-	Motor_init();
+	BOARD_motor_init();
 	timer0_init();
 	CAN_init();
 	printf(" --- End of initialize ---\n\n");
@@ -127,17 +130,21 @@ int main(void)
 	board_input.servo_position = 0;
 	board_input.solenoid_trigger_curr, board_input.solenoid_trigger_prev = 0;
 	
-// 	struct PID_DATA pid_data;
-// 	int16_t P_factor = 1;
-// 	int16_t I_factor = 1;
-// 	int16_t D_factor = 0;
-// 	pid_Init(P_factor*SCALING_FACTOR, I_factor*SCALING_FACTOR, D_factor*SCALING_FACTOR, &pid_data);
-// 	
-// 	
-// 	int16_t encoderData;
-// 	
-// 	int16_t pid_output;
+	struct PID_DATA pid_data;
+	int16_t P_factor = 1;
+	int16_t I_factor = 1;
+	int16_t D_factor = 0;
+	pid_Init(P_factor*SCALING_FACTOR, I_factor*SCALING_FACTOR, D_factor*SCALING_FACTOR, &pid_data);
 	
+	
+	int16_t encoderData;
+	
+	int16_t pid_output;
+	
+	
+	
+	_delay_ms(1000);
+		
 	
 	// ---- LOOP ---- //
 	int8_t IN_GAME = 0;
@@ -151,8 +158,13 @@ int main(void)
 			if(receive_message.id == GAME_START_ID){
 				IN_GAME = 1;
 				printf("Start game message recieved\n");
+				
+// 				int result = BOARD_initialize_for_game();
+// 				printf("board width: %i\n", result);
+				
 				transmit_message.id = GAME_START_ID;
 				transmit_message.length = 0;
+				
 				CAN_message_send(&transmit_message);
 				printf("Ack sent\n");
 			}
@@ -172,7 +184,7 @@ int main(void)
 			
 				PWM_set_compare(board_input.servo_position);
 				if(board_input.solenoid_trigger_prev == 0 & board_input.solenoid_trigger_curr == 1) {
-					Fire_solenoid();
+					BOARD_fire_solenoid();
 					timer0_tot_overflow = 0;
 				}
 				new_unread_message = 0;
@@ -185,14 +197,14 @@ int main(void)
 // 				encoderData = Get_motor_pos();
 // 				pid_output = pid_Controller(board_input.motor_speed*INPUT_MATCH, encoderData, &pid_data);
 // 				printf("pid output: %i\n\n", pid_output/OUTPUT_MATCH);
-				Set_Motor(board_input.motor_speed*1.2);
+				BOARD_set_Motor(board_input.motor_speed);
 				pid_update_flag = 0;
 			}
 			
 			if(detect_ball()){
 				printf(" --- Game over --- \n\n");
 				//shut off motor
-				Motor_disable();
+				BOARD_motor_disable();
 				//send game over message
 				transmit_message.id = GAME_OVER_ID;
 				transmit_message.length = 1;
@@ -204,4 +216,4 @@ int main(void)
 			}
 		}
 	}
-}
+ }
