@@ -9,6 +9,7 @@
 
 void UART_Init( unsigned int ubrr );
 void UART_Transmit(char data);
+void UART_3_Transmit(char data);
 int UART_Receive(void);
 void UART_Test(void);
 

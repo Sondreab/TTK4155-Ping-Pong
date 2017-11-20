@@ -41,7 +41,6 @@ void static BOARD_centre_motor(int board_width){
 		current_pos = BOARD_get_motor_pos();
 		_delay_ms(1);
 	}
-	printf("Current pos: %i\n", BOARD_get_motor_pos());
 	BOARD_set_motor(0);
 	BOARD_motor_disable();
 }

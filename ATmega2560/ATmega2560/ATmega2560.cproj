@@ -153,6 +153,12 @@
     <Compile Include="PID.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="SCORE.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="SCORE.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="Timer.c">
       <SubType>compile</SubType>
     </Compile>
