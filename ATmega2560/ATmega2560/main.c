@@ -139,14 +139,15 @@ int main(void)
 	board_input.solenoid_trigger_curr, board_input.solenoid_trigger_prev = 0;
 	
 	struct PID_DATA pid_data;
-	int16_t P_factor = 1; //100 was the last we tried
-	int16_t I_factor = 0;   //1 breaks the whole thing
+	int16_t P_factor = 2; //100 was the last we tried
+	int16_t I_factor = 1;   //1 breaks the whole thing
 	int16_t D_factor = 0;
 	pid_Init(P_factor*SCALING_FACTOR, I_factor*SCALING_FACTOR, D_factor*SCALING_FACTOR, &pid_data);
 	
 	
 	int16_t encoderData;
 	
+	int16_t prev_pid_input = 0;
 	int16_t pid_input = 0;
 	int16_t pid_output = 0;
 	
@@ -203,7 +204,7 @@ int main(void)
 			}
 			
 			if (fixed_interval_flag){
-				printf("Motor: %i\n", board_input.motor_pos);
+				printf("Motor: %i\n", board_input.motor_pos)*(board_width/255);
 				printf("pos: %i\n",current_pos);
 				printf("in: %i\n", pid_input);
 				printf("out: %i\n", pid_output);
@@ -212,29 +213,27 @@ int main(void)
 			}
 			
 			
-			
+			encoderData = (BOARD_get_motor_pos()/125);
+			current_pos += encoderData;
+
 			if(pid_update_flag){
-<<<<<<< HEAD
-// 				encoderData = Get_motor_pos();
-// 				pid_output = pid_Controller(board_input.motor_speed*INPUT_MATCH, encoderData, &pid_data);
-// 				printf("pid output: %i\n\n", pid_output/OUTPUT_MATCH);
-				Set_Motor(board_input.motor_speed);
-=======
- 				encoderData = (BOARD_get_motor_pos()/125);
-				current_pos += encoderData;
-				if(current_pos > board_width){
-					current_pos = board_width;
-				}else if(current_pos < 0){
-					current_pos = 0;
-				}
-				
+// 				if(current_pos > board_width){
+// 					current_pos = board_width;
+// 				}else if(current_pos < 0){
+// 					current_pos = 0;
+//	 			}
+	
 				pid_input = board_input.motor_pos*(board_width/255);
- 				pid_output = pid_Controller(pid_input, current_pos, &pid_data);
-				 
-				
- 	
-				BOARD_set_motor(pid_output/2);
->>>>>>> PI_controller
+				//Update setpoint only if it's > than 4% change
+				if (abs(prev_pid_input - pid_input) < (board_width/20)){
+					pid_input = prev_pid_input;
+				}
+	
+	
+				pid_output = pid_Controller(pid_input, current_pos, &pid_data);
+				prev_pid_input = pid_input;
+				BOARD_set_motor(pid_output);
+
 				pid_update_flag = 0;
 			}
 			
