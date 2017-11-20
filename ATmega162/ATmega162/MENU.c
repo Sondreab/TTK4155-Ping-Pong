@@ -43,11 +43,12 @@ void menu_create(void) {
 	mainMenu = new_menu("Main Menu", 2, NO_ACTION); 
 	mainMenu->submenus[0] = new_menu("Play game", 0, PLAY_GAME);
 	
-	mainMenu->submenus[1] = new_menu("Settings", 2, NO_ACTION);
+	mainMenu->submenus[1] = new_menu("Settings", 3, NO_ACTION);
 	settings = mainMenu->submenus[1];
 	
 	settings->submenus[0] = new_menu("Brightness", 0, SET_BRIGHTNESS);
 	settings->submenus[1] = new_menu("Calibrate Joystick", 0, CAL_JOY);
+	settings->submenus[2] = new_menu("Back", 0, MENU);
 	
 	
 	//mainMenu->submenus[2] = new_menu("Highscores", 0, NULL);
@@ -112,7 +113,7 @@ STATE_t MENU_controller(menu_t* menu_ptr){
 				state = menu_ptr->submenus[arrowPos-1]->state;
 			}
 		}
-		_delay_ms(20);
+		_delay_ms(100);
 	}
 	
 	OLED_reset();

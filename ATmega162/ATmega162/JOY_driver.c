@@ -123,8 +123,10 @@ void JOY_calibrate() {
 	OLED_reset();
 	OLED_pos(1,0);
 	NEW_OLED_print(oled_cal_complete_str);
+	
 	printf("Joystick X:  ( %i - %i - %i ) %i\n", Rx_min, Mean_x, Rx_max, Range_x);
 	printf("Joystick Y:  ( %i - %i - %i ) %i\n", Ry_min, Mean_y, Ry_max, Range_y);
+	_delay_ms(3000);
 }
 
 int JOY_button(enum JOY_button_t button) {

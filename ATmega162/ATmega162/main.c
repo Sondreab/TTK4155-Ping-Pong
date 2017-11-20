@@ -77,58 +77,78 @@ void joystick_message_packager(struct JOY_data_t* joy_state, struct CAN_msg_t* m
 }
 
 uint16_t Play_game(struct CAN_msg_t* transmit_msg, struct CAN_msg_t* receive_msg, struct JOY_data_t* current_joy_state, struct JOY_data_t* previous_joy_state, uint16_t highscore){
-		uint16_t score = 0;
-		int change = 0;
+	uint16_t score = 0;
+	int change = 0;
+//	while (1){
+		
+		_delay_ms(1000);
+			
+		transmit_msg->id = GAME_START_ID;
+		transmit_msg->length = 2;
+		transmit_msg->data[0] = (highscore & 0b11111111);
+		transmit_msg->data[1] = (highscore >> 8);
+			
+		CAN_message_send(transmit_msg);
+			
+		score = 0;
+		printf("W f ack\n");
+			
+		while (new_unread_message==0){
+			_delay_ms(20);
+		}
+			
+		CAN_data_recieve(receive_msg);
+		new_unread_message = 0;
+		if (receive_msg->id == GAME_START_ID){
+			printf("Ack rec\n");
+		}
+			
+			
 		while (1){
-			
-			_delay_ms(1000);
-			
-			transmit_msg->id = GAME_START_ID;
-			transmit_msg->length = 2;
-			transmit_msg->data[0] = (highscore & 0b11111111);
-			transmit_msg->data[1] = (highscore >> 8);
-			
-			CAN_message_send(transmit_msg);
-			
-			int score = 0;
-			printf("W f ack\n");
-			
-			while (new_unread_message==0){
-				_delay_ms(20);
-			}
-			
-			CAN_data_recieve(receive_msg);
-			new_unread_message = 0;
-			if (receive_msg->id == GAME_START_ID){
-				printf("Ack rec\n");
-			}
-			
-			
-			while (1){
-				_delay_ms(1);
+			_delay_ms(1);
 				
-				change = JOY_poll_change(previous_joy_state, current_joy_state);
-				if(change){
-					joystick_message_packager(current_joy_state, transmit_msg);
-					CAN_message_send(transmit_msg);
-				}
-				if (new_unread_message == 1){
-					CAN_data_recieve(receive_msg);
-					new_unread_message = 0;
-					if (receive_msg->id == GAME_OVER_ID){
-						score = (receive_msg->data[1] << 8);
-						score += receive_msg->data[0];
-						return score;
-					}
+			change = JOY_poll_change(previous_joy_state, current_joy_state);
+			if(change){
+				joystick_message_packager(current_joy_state, transmit_msg);
+				CAN_message_send(transmit_msg);
+			}
+			if (new_unread_message == 1){
+				CAN_data_recieve(receive_msg);
+				new_unread_message = 0;
+				if (receive_msg->id == GAME_OVER_ID){
+					score = (receive_msg->data[1] << 8);
+					score += receive_msg->data[0];
+					return score;
 				}
 			}
 		}
+//	}
 }
 
 
-const char init_complete_str[] = "-- End of init --\n";
-const char game_over_str[] = "         Game Over!       ";
-const char score_str[] = "         Score: ";
+char init_complete_str[] = "-- End of init --\n";
+char game_over_str[] = "       Game Over!       ";
+char score_str[] = "       Score: ";
+char continue_promt_str[] = "    R button for menu";
+
+void Game_over(uint16_t score){
+	OLED_reset();
+	OLED_pos(1,0);
+	NEW_OLED_print(game_over_str);
+	char score_chars[5];
+	itoa(score, score_chars, 10);
+	OLED_pos(2,0);
+	NEW_OLED_print(score_str);
+	NEW_OLED_print(score_chars);
+	OLED_pos(4,0);
+	NEW_OLED_print(continue_promt_str);
+	while (1){
+		if (JOY_button(R_BUTTON)){
+			break;
+		}
+	}
+	_delay_ms(500);
+}
 
 int main(void){
 	UART_Init ( MYUBRR );
@@ -165,10 +185,6 @@ int main(void){
 	_delay_ms(500);
 	// -------- END TESTING OF MENU --------
 	while (1){
-		
-		
-		
-		
 		switch(STATE){
 				
 			case MENU:
@@ -184,19 +200,10 @@ int main(void){
 				break;
 			case CAL_JOY:
 				JOY_calibrate();
-				_delay_ms(3000);
 				STATE = MENU;
 				break;
 			case GAME_OVER:
-				OLED_reset();
-				OLED_pos(1,0);
-				NEW_OLED_print(game_over_str);
-				char score_chars[5];
-				itoa(score, score_chars, 10);
-				OLED_pos(2,0);
-				NEW_OLED_print(score_str);
-				NEW_OLED_print(score_chars);
-				_delay_ms(3000);
+				Game_over(score);
 				STATE = MENU;
 				break;
 			default:
