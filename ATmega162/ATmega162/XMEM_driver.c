@@ -34,7 +34,7 @@ void XMEM_test(void) {
 			_delay_us(100);
 			uint8_t retreived_value = ext_ram[i];
 			if (retreived_value != some_value) {
-				printf("Wr. error\n");
+				//printf("Wr. error\n");
 				write_errors++;
 			}
 		}
@@ -45,12 +45,12 @@ void XMEM_test(void) {
 			uint8_t some_value = rand();
 			uint8_t retreived_value = ext_ram[i];
 			if (retreived_value != some_value) {
-				printf("Ret. error\n");
+				//printf("Ret. error\n");
 				retrieval_errors++;
 			}
 		}
-		printf("SRAM result:");
-		printf("W:%i R:%i\n",write_errors, retrieval_errors );
+		//printf("SRAM result:");
+		//printf("W:%i R:%i\n",write_errors, retrieval_errors );
 }
 
 void XMEM_simple_test(void) {
@@ -58,7 +58,7 @@ void XMEM_simple_test(void) {
 	specific_address[0] = 0xB2;
 	
 	_delay_ms(2000);
-	printf("%02X", specific_address[0]);
+	//printf("%02X", specific_address[0]);
 	
 	
 }

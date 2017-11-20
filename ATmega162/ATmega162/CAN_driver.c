@@ -8,13 +8,14 @@
 # define F_CPU 4915200UL
 #include <avr/io.h>
 #include <stdio.h>
+#include <avr/pgmspace.h>
 #include <util/delay.h>
 #include "SPI_driver.h"
 #include "MCP2515_driver.h"
 #include "MCP2515.h"
 #include "CAN_driver.h"
 
-static const char init_error[] = "MCP2515 is not in config mode after reset!";
+static const char PROGMEM init_error[] = "MCP2515 is not in config mode after reset!";
 
 uint8_t CAN_init() {
 	SPI_MasterInit();

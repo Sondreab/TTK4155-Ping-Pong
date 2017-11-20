@@ -49,7 +49,7 @@ void JOY_init(){
 // 	}
 }
 
-// static const char calibrate_left_str[] PROGMEM = "Hold joystick to the LEFT, then press the LEFT touch button\n";
+ //static const char PROGMEM calibrate_left_str[] = "Hold joystick to the LEFT, then press the LEFT touch button\n";
 // static const char calibrate_right_str[] PROGMEM = "Hold joystick to the RIGHT, then press the RIGHT touch button\n";
 // static const char calibrate_down_str[] PROGMEM = "Hold joystick DOWN, then press LEFT touch button\n";
 // static const char calibrate_up_str[] PROGMEM = "Hold joystick UP, then press the RIGHT touch button\n";
@@ -125,8 +125,8 @@ void JOY_calibrate() {
 	OLED_pos(1,0);
 	NEW_OLED_print(oled_cal_complete_str);
 	
-	printf("Joystick X:  ( %i - %i - %i ) %i\n", Rx_min, Mean_x, Rx_max, Range_x);
-	printf("Joystick Y:  ( %i - %i - %i ) %i\n", Ry_min, Mean_y, Ry_max, Range_y);
+	//printf("Joystick X:  ( %i - %i - %i ) %i\n", Rx_min, Mean_x, Rx_max, Range_x);
+	//printf("Joystick Y:  ( %i - %i - %i ) %i\n", Ry_min, Mean_y, Ry_max, Range_y);
 	_delay_ms(3000);
 }
 

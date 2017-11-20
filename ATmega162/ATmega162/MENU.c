@@ -19,10 +19,9 @@
 
 static menu_t* mainMenu;
 static menu_t* settings;
-static menu_t* control_settings;
-static menu_t* motor_pos;
-static menu_t* servo;
-static menu_t* solenoid;
+// static menu_t* motor_pos;
+// static menu_t* servo;
+// static menu_t* solenoid;
 
 static uint8_t menu_initialized = 0;
 
@@ -49,15 +48,17 @@ void menu_create(void) {
 	mainMenu = new_menu("Main Menu", 2, NO_ACTION); 
 	mainMenu->submenus[0] = new_menu("Play game", 0, PLAY_GAME);
 	
-	mainMenu->submenus[1] = new_menu("Settings", 3, NO_ACTION);
+	mainMenu->submenus[1] = new_menu("Settings", 6, NO_ACTION);
 	settings = mainMenu->submenus[1];
 	
 	settings->submenus[0] = new_menu("Brightness", 0, SET_BRIGHTNESS);
 	settings->submenus[1] = new_menu("Calibrate Joystick", 0, CAL_JOY);
-	//settings->submenus[2] = new_menu("Control Settings", 4, NO_ACTION);
-	settings->submenus[2] = new_menu("Back", 0, MENU);
+	settings->submenus[2] = new_menu("Motor position", 0, SET_MOTOR_POS);
+	settings->submenus[3] = new_menu("Servo", 0, SET_SERVO);
+	settings->submenus[4] = new_menu("Solenoid", 0, SET_SOLENOID);
+	settings->submenus[5] = new_menu("Back", 0, MENU);
 	
-// 	control_settings = settings->submenus[2];
+//	motor_pos = settings->submenus[2];
 // 	control_settings->submenus[0] = new_menu("Motor Position", 4, NO_ACTION);
 // 	control_settings->submenus[1] = new_menu("Servo", 4, NO_ACTION);
 // 	control_settings->submenus[2] = new_menu("Solenoid", 3, NO_ACTION);

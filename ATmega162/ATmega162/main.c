@@ -200,6 +200,91 @@ void Game_over(uint16_t score){
 	_delay_ms(500);
 }
 
+
+void Set_controls_motor_pos(USER_controls_t* controls){
+	OLED_reset();
+	NEW_OLED_print("Motor position controls:");
+	OLED_pos(1,20);
+	NEW_OLED_print("Press button:");
+	OLED_pos(3,20);
+	NEW_OLED_print("R: R-slider (default)");
+	OLED_pos(4,20);
+	NEW_OLED_print("L: L-slider");
+	OLED_pos(5,20);
+	NEW_OLED_print("Joy: X-axis");
+	while (1){
+		if(JOY_button(R_BUTTON)){
+			controls->motor_pos = R_SLIDER;
+			break;
+		}
+		if (JOY_button(L_BUTTON)){
+			controls->motor_pos = L_SLIDER;
+			break;
+		}
+		if (JOY_button(JOY_BUTTON)){
+			controls->motor_pos = X_JOY;
+			break;
+		}		
+	}
+	_delay_ms(500);
+}
+
+void Set_controls_servo(USER_controls_t* controls){
+	OLED_reset();
+	NEW_OLED_print("Servo controls:");
+	OLED_pos(1,20);
+	NEW_OLED_print("Press button:");
+	OLED_pos(3,20);
+	NEW_OLED_print("Joy: X-axis (default)");
+	OLED_pos(4,20);
+	NEW_OLED_print("L: L-slider");
+	OLED_pos(5,20);
+	NEW_OLED_print("R: R-slider");
+	while (1){
+		if (JOY_button(JOY_BUTTON)){
+			controls->servo = X_JOY;
+			break;
+		}
+		if (JOY_button(L_BUTTON)){
+			controls->servo = L_SLIDER;
+			break;
+		}
+		if(JOY_button(R_BUTTON)){
+			controls->servo = R_SLIDER;
+			break;
+		}
+	}
+	_delay_ms(500);
+}
+
+void Set_controls_solenoid(USER_controls_t* controls){
+	OLED_reset();
+	NEW_OLED_print("Solenoid controls:");
+	OLED_pos(1,20);
+	NEW_OLED_print("Press button:");
+	OLED_pos(3,20);
+	NEW_OLED_print("R: R-button (default)");
+	OLED_pos(4,20);
+	NEW_OLED_print("L: L-button");
+	OLED_pos(5,20);
+	NEW_OLED_print("Joy: Joy-button");
+	while (1){
+		if(JOY_button(R_BUTTON)){
+			controls->solenoid = R_BUTTON;
+			break;
+		}
+		if (JOY_button(L_BUTTON)){
+			controls->solenoid = L_BUTTON;
+			break;
+		}
+		if (JOY_button(JOY_BUTTON)){
+			controls->solenoid = JOY_BUTTON;
+			break;
+		}
+	}
+	_delay_ms(500);
+}
+
 int main(void){
 	UART_Init ( MYUBRR );
 	fdevopen(&UART_Transmit, &UART_Receive);
@@ -212,16 +297,15 @@ int main(void){
 	CAN_init();
 	printf(init_complete_str);
 	
-	
-	
-	menu_t *mainMenu = MENU_init();
+	menu_t* mainMenu = 0x1801; //tyring to push main menu to external RAM, because malloc() makes data memory overflow.
+	mainMenu = MENU_init();
 	
 	USER_profile_t default_profile;
 	default_profile.name = "Default";
 	default_profile.highscore = 1337;
 	default_profile.ctrl_pref.motor_pos = R_SLIDER;
 	default_profile.ctrl_pref.servo = X_JOY;
-	default_profile.ctrl_pref.solenoid = L_BUTTON;
+	default_profile.ctrl_pref.solenoid = R_BUTTON;
 	
  	struct CAN_msg_t transmit_msg;
  	struct CAN_msg_t receive_msg;
@@ -248,6 +332,9 @@ int main(void){
 			case MENU:
 				STATE = MENU_controller(mainMenu);
 				break;
+			case SETTINGS:
+				STATE = MENU_controller(mainMenu->submenus[1]);
+				break;
 			case PLAY_GAME:
 				score = Play_game(&transmit_msg, &receive_msg, &current_joy_state, &previous_joy_state, active_user, highscore);
 				if (score > highscore){
@@ -267,12 +354,17 @@ int main(void){
 				Game_over(score);
 				STATE = MENU;
 				break;
-			case CTRL_SETTINGS:
-				STATE = MENU_controller(mainMenu->submenus[1]->submenus[2]);
+			case SET_MOTOR_POS:
+				Set_controls_motor_pos(&active_user->ctrl_pref);
+				STATE = SETTINGS;
 				break;
-			case SET_MOTOR_POS_L_SLIDER:
-				active_user->ctrl_pref.motor_pos = L_SLIDER;
-				STATE = CTRL_SETTINGS;
+			case SET_SERVO:
+				Set_controls_servo(&active_user->ctrl_pref);
+				STATE = SETTINGS;
+				break;
+			case SET_SOLENOID:
+				Set_controls_solenoid(&active_user->ctrl_pref);
+				STATE = SETTINGS;
 				break;
 			default:
 				break;
