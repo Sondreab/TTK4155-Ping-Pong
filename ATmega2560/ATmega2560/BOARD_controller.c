@@ -33,58 +33,71 @@ void BOARD_motor_init(){
 }
 
 void static BOARD_centre_motor(int board_width){
+	int centre = board_width/2;
 	int current_pos = board_width;
-	int count_not_moving = 0;
-	int temp = 0;
 	BOARD_set_motor(-60);
 	_delay_ms(100);
-	while(count_not_moving < 10){
-		temp = BOARD_get_motor_pos();
-		if(temp == 0){
-			count_not_moving++;
-		}
-		
-		current_pos += (temp/125);
+	while (current_pos > centre){
+		current_pos = BOARD_get_motor_pos();
 		_delay_ms(1);
-		if (current_pos < 1.25*(board_width/2)){ //factor of 1.25 because it moves too far.
-			break;
-		}
 	}
-	printf("current pos: %i\n", current_pos);
+	printf("Current pos: %i\n", BOARD_get_motor_pos());
 	BOARD_set_motor(0);
 	BOARD_motor_disable();
 }
 
-int static BOARD_motor_to_edge(int direction){
+int static BOARD_motor_to_left_edge(void){
 	int board_width = 0;
+	int current_encoder = 0;
+	int prev_encoder = -1;
 	int count_not_moving = 0;
-	int temp = 0;
-	BOARD_set_motor(direction*70);
+	BOARD_set_motor(70);
 	_delay_ms(100);
-	while(count_not_moving < 10){
-		temp = BOARD_get_motor_pos();
-		if(temp == 0){
+	while (count_not_moving < 20){
+		_delay_ms(5);
+		prev_encoder = current_encoder;
+		current_encoder = BOARD_get_motor_pos();
+		if (prev_encoder == current_encoder){
 			count_not_moving++;
 		}
-		
-		board_width += (temp/125);
-		_delay_ms(1);
 	}
 	BOARD_set_motor(0);
 	BOARD_motor_disable();
-	return board_width;
+	board_width = BOARD_get_motor_pos();
+	return board_width;	
+}
+
+void static BOARD_motor_to_right_edge(void){
+	int current_encoder = 0;
+	int prev_encoder = -1;
+	int count_not_moving = 0;
+	BOARD_set_motor(-70);
+	_delay_ms(100);
+	while (count_not_moving < 20){
+		_delay_ms(5);
+		prev_encoder = current_encoder;
+		current_encoder = BOARD_get_motor_pos();
+		if (prev_encoder == current_encoder){
+			count_not_moving++;
+		}
+	}
+	BOARD_set_motor(0);
+	BOARD_motor_disable();
 }
 
 int BOARD_initialize_for_game(){
+	BOARD_enable_encoder();
 	int board_width = 0;
 	
-	board_width = BOARD_motor_to_edge(-1);
+	BOARD_motor_to_right_edge();
 	
 	printf("Right edge\n");
 	
+	BOARD_reset_encoder();
+	
 	_delay_ms(1000);
 	
-	board_width = BOARD_motor_to_edge(1);
+	board_width = BOARD_motor_to_left_edge();
 	
 	printf("Left edge\n");
 	
@@ -124,29 +137,39 @@ void BOARD_motor_disable(){
 }
 
 int16_t BOARD_get_motor_pos(){
-	//set !OE low to enable output of encoder
-	PORTH &= ~(1<<PH5);
 	//set SEL low to get high byte
 	PORTH &= ~(1<<PH3);
 	//wait for stable signal
 	_delay_us(20);
-	//read high byte on PIND
-	uint8_t lowbyte = PINK;
+	//read high byte on PINK
+	uint8_t highbyte = PINK;
 	//set SEL high and wait for stable signal
 	PORTH |= (1<<PH3);
 	_delay_us(20);
-	//read low byte on PIND
-	uint8_t highbyte = PINK;
-	//toggle !RST to reset the encoder
-	PORTH &= ~(1<<PH6);
-	_delay_us(10);
-	PORTH |= (1<<PH6);
-	//set !OE high to disable reading
-	PORTH |= (1<<PH5);
+	//read low byte on PINK
+	uint8_t lowbyte = PINK;
+
 	
 	uint16_t result = (highbyte<<8);
 	result += lowbyte;
 	return result;
+}
+
+void BOARD_enable_encoder(){
+	//set !OE low to enable output of encoder
+	PORTH &= ~(1<<PH5);
+}
+
+void BOARD_disable_encoder(){
+	//set !OE high to disable reading
+	PORTH |= (1<<PH5);
+}
+
+void BOARD_reset_encoder(void){
+	//toggle !RST to reset the encoder
+	 PORTH &= ~(1<<PH6);
+	 _delay_us(10);
+	 PORTH |= (1<<PH6);
 }
 
 void BOARD_fire_solenoid(){

@@ -125,10 +125,20 @@ void initialize_node(){
 	
 }
 
+void Encoder_test(){
+	int board_width = BOARD_initialize_for_game();
+	printf("board width: %i\n", board_width);
+	while (1){
+		printf("pos: %i\n", BOARD_get_motor_pos());
+		_delay_ms(1000);
+	}
+	
+}
+
 int main(void)
 {
 	initialize_node();
-
+	
 	// ---- VARIABLE AND STRUCT INITIALIZATION ---- //
 	volatile struct CAN_msg_t receive_message;
 	volatile struct CAN_msg_t transmit_message;
@@ -159,7 +169,7 @@ int main(void)
 	// ---- LOOP ---- //
 	int8_t IN_GAME = 0;
 	
-	//start game
+	
 	while (1)
 	{
 		_delay_ms(1);
@@ -170,9 +180,9 @@ int main(void)
 				printf("Start game message recieved\n");
 				
 				board_width = BOARD_initialize_for_game();
-				printf("board width: %i\n", board_width);
+				printf("Board width: %i\n", board_width);
 				
-				current_pos = board_width/2;
+				
 				
 				transmit_message.id = GAME_START_ID;
 				transmit_message.length = 0;
@@ -185,7 +195,6 @@ int main(void)
 		}
 		
 		while(IN_GAME){
-			_delay_ms(1);
 			if(new_unread_message){
 				CAN_data_recieve(&receive_message);
 				if (receive_message.id == JOY_DATA_ID){
@@ -203,18 +212,17 @@ int main(void)
 			
 			}
 			
-			if (fixed_interval_flag){
-				printf("Motor: %i\n", board_input.motor_pos)*(board_width/255);
-				printf("pos: %i\n",current_pos);
-				printf("in: %i\n", pid_input);
-				printf("out: %i\n", pid_output);
-				printf("\n");
-				fixed_interval_flag = 0;
-			}
+// 			if (fixed_interval_flag){
+// 				printf("Motor: %i\n", board_input.motor_pos)*(board_width/255);
+// 				printf("pos: %i\n",current_pos);
+// 				printf("in: %i\n", pid_input);
+// 				printf("out: %i\n", pid_output);
+// 				printf("\n");
+// 				fixed_interval_flag = 0;
+// 			}
 			
 			
-			encoderData = (BOARD_get_motor_pos()/125);
-			current_pos += encoderData;
+			current_pos = BOARD_get_motor_pos();
 
 			if(pid_update_flag){
 // 				if(current_pos > board_width){
@@ -224,7 +232,7 @@ int main(void)
 //	 			}
 	
 				pid_input = board_input.motor_pos*(board_width/255);
-				//Update setpoint only if it's > than 4% change
+				//Update setpoint only if it's > than 5% change
 				if (abs(prev_pid_input - pid_input) < (board_width/20)){
 					pid_input = prev_pid_input;
 				}
