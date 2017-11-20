@@ -76,15 +76,17 @@ void joystick_message_packager(struct JOY_data_t* joy_state, struct CAN_msg_t* m
 	
 }
 
-int Play_game(struct CAN_msg_t* transmit_msg, struct CAN_msg_t* receive_msg, struct JOY_data_t* current_joy_state, struct JOY_data_t* previous_joy_state){
-		int score = 0;
+uint16_t Play_game(struct CAN_msg_t* transmit_msg, struct CAN_msg_t* receive_msg, struct JOY_data_t* current_joy_state, struct JOY_data_t* previous_joy_state, uint16_t highscore){
+		uint16_t score = 0;
 		int change = 0;
 		while (1){
 			
 			_delay_ms(1000);
 			
 			transmit_msg->id = GAME_START_ID;
-			transmit_msg->length = 0;
+			transmit_msg->length = 2;
+			transmit_msg->data[0] = (highscore & 0b11111111);
+			transmit_msg->data[1] = (highscore >> 8);
 			
 			CAN_message_send(transmit_msg);
 			
@@ -114,7 +116,8 @@ int Play_game(struct CAN_msg_t* transmit_msg, struct CAN_msg_t* receive_msg, str
 					CAN_data_recieve(receive_msg);
 					new_unread_message = 0;
 					if (receive_msg->id == GAME_OVER_ID){
-						score = receive_msg->data[0];
+						score = (receive_msg->data[1] << 8);
+						score += receive_msg->data[0];
 						return score;
 					}
 				}
@@ -152,7 +155,8 @@ int main(void){
 	JOY_initialize_state(&current_joy_state);
 
 	STATE_t STATE = MENU;
-	int score = 743;
+	uint16_t highscore = 1337;
+	uint16_t score = 0;
 	
 	
 	//------ TESTING OF MENU ------------
@@ -171,18 +175,23 @@ int main(void){
 				STATE = MENU_controller(mainMenu);
 				break;
 			case PLAY_GAME:
-				score = Play_game(&transmit_msg, &receive_msg, &current_joy_state, &previous_joy_state);
+				score = Play_game(&transmit_msg, &receive_msg, &current_joy_state, &previous_joy_state, highscore);
 				STATE = GAME_OVER;
 				break;
 			case SET_BRIGHTNESS:
 				MENU_set_brightness();
 				STATE = MENU;
 				break;
+			case CAL_JOY:
+				JOY_calibrate();
+				_delay_ms(3000);
+				STATE = MENU;
+				break;
 			case GAME_OVER:
 				OLED_reset();
 				OLED_pos(1,0);
 				NEW_OLED_print(game_over_str);
-				char score_chars[3];
+				char score_chars[5];
 				itoa(score, score_chars, 10);
 				OLED_pos(2,0);
 				NEW_OLED_print(score_str);

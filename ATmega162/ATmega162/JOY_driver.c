@@ -13,6 +13,7 @@
 #include <avr/pgmspace.h>
 #include "ADC_driver.h"
 #include "JOY_driver.h"
+#include "OLED_driver.h"
 
 
 
@@ -27,39 +28,60 @@ static volatile int Ry_min = 0;
 static int Range_y = 255;
 static int Mean_y = 127;
 
-static const char calibrate_query_str[] = "Calibrate Joystick?\nPress RIGHT touch button to calibrate or LEFT touch button to skip.\n";
-static const char calibrate_start_str[] = "Entering Calibration.\n";
-static const char calibrate_left_str[] = "Hold joystick to the LEFT, then press the LEFT touch button\n";
-static const char calibrate_right_str[] = "Hold joystick to the RIGHT, then press the RIGHT touch button\n";
-static const char calibrate_down_str[] = "Hold joystick DOWN, then press LEFT touch button\n";
-static const char calibrate_up_str[] = "Hold joystick UP, then press the RIGHT touch button\n";
+static const char calibrate_query_str[] PROGMEM = "Calibrate Joystick?\nPress RIGHT touch button to calibrate or LEFT touch button to skip.\n";
+static const char calibrate_start_str[] PROGMEM = "Entering Calibration.\n";
+
 
 void JOY_init(){
 	DDRB &= ~(1<<PB0);
 	DDRB &= ~(1<<PB1);
-	DDRB &= ~(1<<PB2);
-	printf(calibrate_query_str);
-	while(1){
-		if(JOY_button(R_BUTTON)){
-			printf(calibrate_start_str);
-			JOY_calibrate();
-			break;
-		}else if(JOY_button(L_BUTTON)){
-			break;
-		}
-	}
+	DDRD &= ~(1<<PD2);
+//	printf(calibrate_query_str);
+// 	while(1){
+// 		if(JOY_button(R_BUTTON)){
+// 			printf(calibrate_start_str);
+// 			JOY_calibrate();
+// 			break;
+// 		}else if(JOY_button(L_BUTTON)){
+// 			break;
+// 		}
+// 	}
 }
 
+// static const char calibrate_left_str[] PROGMEM = "Hold joystick to the LEFT, then press the LEFT touch button\n";
+// static const char calibrate_right_str[] PROGMEM = "Hold joystick to the RIGHT, then press the RIGHT touch button\n";
+// static const char calibrate_down_str[] PROGMEM = "Hold joystick DOWN, then press LEFT touch button\n";
+// static const char calibrate_up_str[] PROGMEM = "Hold joystick UP, then press the RIGHT touch button\n";
+
+static char oled_cal_left_str1[] = "Hold joystick LEFT";
+static char oled_cal_left_str2[] = "Press L button";
+static char oled_cal_right_str1[] = "Hold joystick RIGHT";
+static char oled_cal_right_str2[] = "Press R button";
+static char oled_cal_down_str1[] = "Hold joystick DOWN";
+static char oled_cal_down_str2[] = "Press L button";
+static char oled_cal_up_str1[] = "Hold joystick UP";
+static char oled_cal_up_str2[] = "Press R button";
+static char oled_cal_complete_str[] = "Calibration complete!";
+
 void JOY_calibrate() {
-	printf(calibrate_left_str);
+	OLED_reset();
+	OLED_pos(1,0);
+	NEW_OLED_print(oled_cal_left_str1);
+	OLED_pos(2,0);
+	NEW_OLED_print(oled_cal_left_str2);
+	//printf(calibrate_left_str);
 	while(1) {
 		if(JOY_button(L_BUTTON)) {
 			Rx_min = ADC_read(X_JOY);
 			break;
 		}
 	}
-	
-	printf(calibrate_right_str);
+	OLED_reset();
+	OLED_pos(1,0);
+	NEW_OLED_print(oled_cal_right_str1);
+	OLED_pos(2,0);
+	NEW_OLED_print(oled_cal_right_str2);
+	//printf(calibrate_right_str);
 	while(1) {
 		if(JOY_button(R_BUTTON)) {
 			Rx_max = ADC_read(X_JOY);
@@ -67,7 +89,12 @@ void JOY_calibrate() {
 		}
 	}
 	
-	printf(calibrate_down_str);
+	OLED_reset();
+	OLED_pos(1,0);
+	NEW_OLED_print(oled_cal_down_str1);
+	OLED_pos(2,0);
+	NEW_OLED_print(oled_cal_down_str2);
+	//printf(calibrate_down_str);
 	while(1) {
 		if(JOY_button(L_BUTTON)) {
 			Ry_min = ADC_read(Y_JOY);
@@ -75,7 +102,12 @@ void JOY_calibrate() {
 		}
 	}
 	
-	printf(calibrate_up_str);
+	OLED_reset();
+	OLED_pos(1,0);
+	NEW_OLED_print(oled_cal_up_str1);
+	OLED_pos(2,0);
+	NEW_OLED_print(oled_cal_up_str2);
+	//printf(calibrate_up_str);
 	while(1) {
 		if(JOY_button(R_BUTTON)) {
 			Ry_max = ADC_read(Y_JOY);
@@ -88,15 +120,18 @@ void JOY_calibrate() {
 	Mean_x = Range_x / 2;
 	Mean_y = Range_y / 2;
 	
+	OLED_reset();
+	OLED_pos(1,0);
+	NEW_OLED_print(oled_cal_complete_str);
 	printf("Joystick X:  ( %i - %i - %i ) %i\n", Rx_min, Mean_x, Rx_max, Range_x);
 	printf("Joystick Y:  ( %i - %i - %i ) %i\n", Ry_min, Mean_y, Ry_max, Range_y);
 }
 
 int JOY_button(enum JOY_button_t button) {
 	int output = 0;
-	//Button = 0 -> Joystick Button
-	//button = 1 -> Left touchbutton (PB0)
-	//button = 2 -> Right touchbutton (PB1)
+	//Button = 0 -> Joystick Button (PB0)
+	//button = 1 -> Left touchbutton (PB1)
+	//button = 2 -> Right touchbutton (PD2)
 	switch(button){
 		case JOY_BUTTON:
 		if(!(PINB & (1<<PB0))){
@@ -109,7 +144,7 @@ int JOY_button(enum JOY_button_t button) {
 		}
 		break;
 		case R_BUTTON:
-		if(PINB & (1<<PB2)){
+		if(PIND & (1<<PD2)){
 			output = 1;
 		}
 		break;

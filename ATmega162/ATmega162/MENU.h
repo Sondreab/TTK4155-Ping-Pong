@@ -12,6 +12,7 @@ typedef enum{
 	MENU,
 	PLAY_GAME,
 	SET_BRIGHTNESS,
+	CAL_JOY,
 	GAME_OVER,
 	
 }STATE_t;

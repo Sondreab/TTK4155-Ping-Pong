@@ -43,10 +43,11 @@ void menu_create(void) {
 	mainMenu = new_menu("Main Menu", 2, NO_ACTION); 
 	mainMenu->submenus[0] = new_menu("Play game", 0, PLAY_GAME);
 	
-	mainMenu->submenus[1] = new_menu("Settings", 1, NO_ACTION);
+	mainMenu->submenus[1] = new_menu("Settings", 2, NO_ACTION);
 	settings = mainMenu->submenus[1];
 	
 	settings->submenus[0] = new_menu("Brightness", 0, SET_BRIGHTNESS);
+	settings->submenus[1] = new_menu("Calibrate Joystick", 0, CAL_JOY);
 	
 	
 	//mainMenu->submenus[2] = new_menu("Highscores", 0, NULL);
@@ -63,7 +64,7 @@ menu_t* MENU_init(void) {
 	return mainMenu;
 }
 
-static const char spaces_str[] = "     ";
+static char spaces_str[] = "     ";
 
 STATE_t MENU_controller(menu_t* menu_ptr){
 	_delay_ms(500);
@@ -118,9 +119,9 @@ STATE_t MENU_controller(menu_t* menu_ptr){
 	return state;	
 }
 
-static const char set_brightness_str[] = "Set brightness";
-static const char adjust_str[] = "LEFT slider to adjust";
-static const char confirm_str[] = "RIGHT button to confirm";
+static char set_brightness_str[] = "Set brightness";
+static char adjust_str[] = "LEFT slider to adjust";
+static char confirm_str[] = "RIGHT button to confirm";
 
 void MENU_set_brightness(void){
 	OLED_pos(0,0);
