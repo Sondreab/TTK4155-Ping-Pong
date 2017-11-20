@@ -11,6 +11,7 @@
 #include <util/delay.h>
 #include <avr/io.h>
 #include <avr/pgmspace.h>
+#include "typedef.h"
 #include "ADC_driver.h"
 #include "JOY_driver.h"
 #include "OLED_driver.h"
@@ -28,8 +29,8 @@ static volatile int Ry_min = 0;
 static int Range_y = 255;
 static int Mean_y = 127;
 
-static const char calibrate_query_str[] PROGMEM = "Calibrate Joystick?\nPress RIGHT touch button to calibrate or LEFT touch button to skip.\n";
-static const char calibrate_start_str[] PROGMEM = "Entering Calibration.\n";
+static const char PROGMEM calibrate_query_str[] = "Calibrate Joystick?\nPress RIGHT touch button to calibrate or LEFT touch button to skip.\n";
+static const char PROGMEM calibrate_start_str[] = "Entering Calibration.\n";
 
 
 void JOY_init(){
@@ -129,7 +130,7 @@ void JOY_calibrate() {
 	_delay_ms(3000);
 }
 
-int JOY_button(enum JOY_button_t button) {
+int JOY_button(JOY_button_t button) {
 	int output = 0;
 	//Button = 0 -> Joystick Button (PB0)
 	//button = 1 -> Left touchbutton (PB1)

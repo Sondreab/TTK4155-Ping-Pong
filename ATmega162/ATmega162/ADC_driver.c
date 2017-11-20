@@ -9,6 +9,7 @@
 #include <util/delay.h>
 #include <avr/io.h>
 #include <stdlib.h>
+#include "typedef.h"
 #include "ADC_driver.h"
 
 volatile static char ADC_intr;

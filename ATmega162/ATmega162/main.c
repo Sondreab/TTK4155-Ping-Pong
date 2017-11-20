@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <avr/interrupt.h>
+#include "typedef.h"
 #include "UART_driver.h"
 #include "XMEM_driver.h"
 #include "JOY_driver.h"
@@ -21,6 +22,7 @@
 #include "MENU.h"
 #include "MCP2515.h"
 #include "CAN_driver.h"
+#include "USER_profiles.h"
 
 
 #define FOSC 4915200// Clock Speed
@@ -58,21 +60,58 @@ ISR(BADISR_vect) {
 }
 
 
-void joystick_message_packager(struct JOY_data_t* joy_state, struct CAN_msg_t* msg)
-{
-	int settings = 1;
+void joystick_message_packager(struct JOY_data_t* joy_state, struct CAN_msg_t* msg, USER_controls_t* controls){
 	msg->id = JOY_DATA_ID;
 	msg->length = 3;
-	switch(settings){
-		//User defined settings cases
+	switch(controls->motor_pos){
+		case L_SLIDER:
+			msg->data[MOTOR_POS] = joy_state->sliders.L_slider;
+			break;
+		case X_JOY:
+			msg->data[MOTOR_POS] = joy_state->position.X;
+			break;
+		case Y_JOY:
+			msg->data[MOTOR_POS] = joy_state->position.Y;
+			break;
+		case R_SLIDER:
 		default:
-			
-		case 1:
-		msg->data[0] = joy_state->sliders.R_slider;
-		msg->data[1] = joy_state->position.X;
-		msg->data[2] = joy_state->R_button;
-		break;
+			msg->data[MOTOR_POS] = joy_state->sliders.R_slider;
+			break;
 	}
+	
+	switch(controls->servo){
+		case L_SLIDER:
+			msg->data[SERVO] = joy_state->sliders.L_slider;
+			break;
+		case R_SLIDER:
+			msg->data[SERVO] = joy_state->sliders.R_slider;
+			break;
+		case Y_JOY:
+			msg->data[SERVO] = joy_state->position.Y;
+			break;
+		case X_JOY:
+		default:
+			msg->data[SERVO] = joy_state->position.X;
+			break;	
+	}
+	
+	switch(controls->solenoid){
+		case JOY_BUTTON:
+			msg->data[SOLENOID] = joy_state->joy_button;
+			break;
+		case L_BUTTON:
+			msg->data[SOLENOID] = joy_state->L_button;
+			break;
+		case R_BUTTON:
+		default:
+			msg->data[SOLENOID] = joy_state->R_button;
+			break;
+		
+	}
+	
+// 	msg->data[0] = joy_state->sliders.R_slider;
+// 	msg->data[1] = joy_state->position.X;
+// 	msg->data[2] = joy_state->R_button;
 	
 }
 
@@ -80,7 +119,7 @@ char game_board_init_str[] = "Initializing game board";
 char please_wait_str[] = "     Please wait...";
 char game_running[] = "  --- Game running! ---";
 
-uint16_t Play_game(struct CAN_msg_t* transmit_msg, struct CAN_msg_t* receive_msg, struct JOY_data_t* current_joy_state, struct JOY_data_t* previous_joy_state, uint16_t highscore){
+uint16_t Play_game(struct CAN_msg_t* transmit_msg, struct CAN_msg_t* receive_msg, struct JOY_data_t* current_joy_state, struct JOY_data_t* previous_joy_state, USER_profile_t* user, uint16_t highscore){
 	uint16_t score = 0;
 	int hw_change = 0;
 	
@@ -121,7 +160,7 @@ uint16_t Play_game(struct CAN_msg_t* transmit_msg, struct CAN_msg_t* receive_msg
 				
 		hw_change = JOY_poll_change(previous_joy_state, current_joy_state);
 		if(hw_change){
-			joystick_message_packager(current_joy_state, transmit_msg);
+			joystick_message_packager(current_joy_state, transmit_msg, &user->ctrl_pref);
 			CAN_message_send(transmit_msg);
 		}
 		if (new_unread_message == 1){
@@ -174,7 +213,15 @@ int main(void){
 	printf(init_complete_str);
 	
 	
+	
 	menu_t *mainMenu = MENU_init();
+	
+	USER_profile_t default_profile;
+	default_profile.name = "Default";
+	default_profile.highscore = 1337;
+	default_profile.ctrl_pref.motor_pos = R_SLIDER;
+	default_profile.ctrl_pref.servo = X_JOY;
+	default_profile.ctrl_pref.solenoid = L_BUTTON;
 	
  	struct CAN_msg_t transmit_msg;
  	struct CAN_msg_t receive_msg;
@@ -189,6 +236,7 @@ int main(void){
 	uint16_t highscore = 1337;
 	uint16_t score = 0;
 	
+	USER_profile_t * active_user = &default_profile;
 	
 	//------ TESTING OF MENU ------------
 	
@@ -197,12 +245,14 @@ int main(void){
 	// -------- END TESTING OF MENU --------
 	while (1){
 		switch(STATE){
-				
 			case MENU:
 				STATE = MENU_controller(mainMenu);
 				break;
 			case PLAY_GAME:
-				score = Play_game(&transmit_msg, &receive_msg, &current_joy_state, &previous_joy_state, highscore);
+				score = Play_game(&transmit_msg, &receive_msg, &current_joy_state, &previous_joy_state, active_user, highscore);
+				if (score > highscore){
+					highscore = score;
+				}
 				STATE = GAME_OVER;
 				break;
 			case SET_BRIGHTNESS:
@@ -216,6 +266,13 @@ int main(void){
 			case GAME_OVER:
 				Game_over(score);
 				STATE = MENU;
+				break;
+			case CTRL_SETTINGS:
+				STATE = MENU_controller(mainMenu->submenus[1]->submenus[2]);
+				break;
+			case SET_MOTOR_POS_L_SLIDER:
+				active_user->ctrl_pref.motor_pos = L_SLIDER;
+				STATE = CTRL_SETTINGS;
 				break;
 			default:
 				break;

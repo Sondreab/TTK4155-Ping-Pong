@@ -169,6 +169,12 @@
     <Compile Include="UART_driver.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="USER_profiles.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="USER_profiles.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="XMEM_driver.c">
       <SubType>compile</SubType>
     </Compile>

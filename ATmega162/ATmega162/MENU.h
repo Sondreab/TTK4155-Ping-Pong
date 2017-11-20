@@ -6,17 +6,6 @@
  */ 
 
 
-
-typedef enum{
-	NO_ACTION,
-	MENU,
-	PLAY_GAME,
-	SET_BRIGHTNESS,
-	CAL_JOY,
-	GAME_OVER,
-	
-}STATE_t;
-
 typedef struct menu_t menu_t;
 
 struct menu_t {

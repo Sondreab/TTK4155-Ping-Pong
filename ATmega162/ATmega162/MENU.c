@@ -10,13 +10,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <util/delay.h>
+#include <avr/pgmspace.h>
 
+#include "typedef.h"
 #include "MENU.h"
 #include "OLED_driver.h"
 #include "JOY_driver.h"
 
 static menu_t* mainMenu;
 static menu_t* settings;
+static menu_t* control_settings;
+static menu_t* motor_pos;
+static menu_t* servo;
+static menu_t* solenoid;
 
 static uint8_t menu_initialized = 0;
 
@@ -48,8 +54,19 @@ void menu_create(void) {
 	
 	settings->submenus[0] = new_menu("Brightness", 0, SET_BRIGHTNESS);
 	settings->submenus[1] = new_menu("Calibrate Joystick", 0, CAL_JOY);
+	//settings->submenus[2] = new_menu("Control Settings", 4, NO_ACTION);
 	settings->submenus[2] = new_menu("Back", 0, MENU);
 	
+// 	control_settings = settings->submenus[2];
+// 	control_settings->submenus[0] = new_menu("Motor Position", 4, NO_ACTION);
+// 	control_settings->submenus[1] = new_menu("Servo", 4, NO_ACTION);
+// 	control_settings->submenus[2] = new_menu("Solenoid", 3, NO_ACTION);
+// 	control_settings->submenus[3] = settings->submenus[3];
+	
+// 	motor_pos = control_settings->submenus[0];
+// 	motor_pos->submenus[0] = new_menu("R slider (recommend)", 0, SET_MOTOR_POS_R_SLIDER);
+// 	motor_pos->submenus[1] = new_menu("L slider", 0, SET_MOTOR_POS_L_SLIDER);
+// 	
 	
 	//mainMenu->submenus[2] = new_menu("Highscores", 0, NULL);
 	

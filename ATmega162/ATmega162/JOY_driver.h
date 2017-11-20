@@ -5,6 +5,7 @@
  *  Author: sondreab
  */ 
 
+
 #define NUM_BUTTONS 3
 
 
@@ -21,12 +22,6 @@ enum JOY_direction_t {
 	DOWN,
 	LEFT,
 	};
-
-enum JOY_button_t{
-	JOY_BUTTON,
-	L_BUTTON,
-	R_BUTTON,
-};
 
 	
 struct JOY_sliders_t {
@@ -50,7 +45,7 @@ struct JOY_data_t {
 static struct JOY_position_t JOY_getPosition_converted();
 void JOY_init();
 void JOY_calibrate();
-int JOY_button(enum JOY_button_t button);
+int JOY_button(JOY_button_t button);
 struct JOY_position_t JOY_getPosition();
 enum JOY_direction_t JOY_getDirection();
 struct JOY_sliders_t JOY_getSliderPosition();
