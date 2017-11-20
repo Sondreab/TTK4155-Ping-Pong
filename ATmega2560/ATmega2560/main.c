@@ -221,6 +221,7 @@ int main(void)
 			
 			if(detect_ball()){
 				printf(" --- Game over --- \n\n");
+				PWM_set_compare(127);
 				BOARD_set_motor(0);
 				BOARD_motor_disable();
 				SCORE_send_to_node_three(SCORE_END, score);
