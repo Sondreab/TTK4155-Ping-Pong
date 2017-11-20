@@ -76,58 +76,69 @@ void joystick_message_packager(struct JOY_data_t* joy_state, struct CAN_msg_t* m
 	
 }
 
+char game_board_init_str[] = "Initializing game board";
+char please_wait_str[] = "     Please wait...";
+char game_running[] = "  --- Game running! ---";
+
 uint16_t Play_game(struct CAN_msg_t* transmit_msg, struct CAN_msg_t* receive_msg, struct JOY_data_t* current_joy_state, struct JOY_data_t* previous_joy_state, uint16_t highscore){
 	uint16_t score = 0;
-	int change = 0;
-//	while (1){
-		
-		_delay_ms(1000);
+	int hw_change = 0;
+	
+	OLED_reset();
+	OLED_pos(3,0);
+	NEW_OLED_print(game_board_init_str);
+	OLED_pos(4,0);
+	NEW_OLED_print(please_wait_str);
+	
+	_delay_ms(500);
 			
-		transmit_msg->id = GAME_START_ID;
-		transmit_msg->length = 2;
-		transmit_msg->data[0] = (highscore & 0b11111111);
-		transmit_msg->data[1] = (highscore >> 8);
+	transmit_msg->id = GAME_START_ID;
+	transmit_msg->length = 2;
+	transmit_msg->data[0] = (highscore & 0b11111111);
+	transmit_msg->data[1] = (highscore >> 8);
 			
-		CAN_message_send(transmit_msg);
+	CAN_message_send(transmit_msg);
 			
-		score = 0;
-		printf("W f ack\n");
+	score = 0;
+	printf("W f ack\n");
 			
-		while (new_unread_message==0){
-			_delay_ms(20);
-		}
+	while (new_unread_message==0){
+		_delay_ms(20);
+	}
 			
-		CAN_data_recieve(receive_msg);
-		new_unread_message = 0;
-		if (receive_msg->id == GAME_START_ID){
-			printf("Ack rec\n");
-		}
+	CAN_data_recieve(receive_msg);
+	new_unread_message = 0;
+	if (receive_msg->id == GAME_START_ID){
+		printf("Ack rec\n");
+	}
+	
+	OLED_reset();
+	OLED_pos(3,0);
+	NEW_OLED_print(game_running);
 			
-			
-		while (1){
-			_delay_ms(1);
+	while (1){
+		_delay_ms(1);
 				
-			change = JOY_poll_change(previous_joy_state, current_joy_state);
-			if(change){
-				joystick_message_packager(current_joy_state, transmit_msg);
-				CAN_message_send(transmit_msg);
-			}
-			if (new_unread_message == 1){
-				CAN_data_recieve(receive_msg);
-				new_unread_message = 0;
-				if (receive_msg->id == GAME_OVER_ID){
-					score = (receive_msg->data[1] << 8);
-					score += receive_msg->data[0];
-					return score;
-				}
+		hw_change = JOY_poll_change(previous_joy_state, current_joy_state);
+		if(hw_change){
+			joystick_message_packager(current_joy_state, transmit_msg);
+			CAN_message_send(transmit_msg);
+		}
+		if (new_unread_message == 1){
+			CAN_data_recieve(receive_msg);
+			new_unread_message = 0;
+			if (receive_msg->id == GAME_OVER_ID){
+				score = (receive_msg->data[1] << 8);
+				score += receive_msg->data[0];
+				return score;
 			}
 		}
-//	}
+	}
 }
 
 
 char init_complete_str[] = "-- End of init --\n";
-char game_over_str[] = "       Game Over!       ";
+char game_over_str[] = "       Game Over!";
 char score_str[] = "       Score: ";
 char continue_promt_str[] = "    R button for menu";
 
