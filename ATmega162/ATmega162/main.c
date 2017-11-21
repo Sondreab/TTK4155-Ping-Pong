@@ -23,6 +23,7 @@
 #include "MCP2515.h"
 #include "CAN_driver.h"
 #include "USER_profiles.h"
+#include "EEPROM.h"
 
 
 #define FOSC 4915200// Clock Speed
@@ -108,11 +109,6 @@ void joystick_message_packager(struct JOY_data_t* joy_state, struct CAN_msg_t* m
 			break;
 		
 	}
-	
-// 	msg->data[0] = joy_state->sliders.R_slider;
-// 	msg->data[1] = joy_state->position.X;
-// 	msg->data[2] = joy_state->R_button;
-	
 }
 
 char game_board_init_str[] = "Initializing game board";
@@ -176,7 +172,7 @@ uint16_t Play_game(struct CAN_msg_t* transmit_msg, struct CAN_msg_t* receive_msg
 }
 
 
-char init_complete_str[] = "-- End of init --\n";
+char init_complete_str[] = "-End of init-\n";
 char game_over_str[] = "       Game Over!";
 char score_str[] = "       Score: ";
 char continue_promt_str[] = "    R button for menu";
@@ -285,6 +281,24 @@ void Set_controls_solenoid(USER_controls_t* controls){
 	_delay_ms(500);
 }
 
+
+char highscore_str[] = "High score:";
+void Show_highscore(uint16_t highscore){
+	NEW_OLED_print(highscore_str);
+	OLED_pos(3,50);
+	char score_chars[5];
+	itoa(highscore, score_chars, 10);
+	NEW_OLED_print(score_chars);
+	OLED_pos(6,0);
+	NEW_OLED_print(continue_promt_str);
+	while (1){
+		if (JOY_button(R_BUTTON)){
+			break;
+		}
+	}
+	_delay_ms(500);
+}
+
 int main(void){
 	UART_Init ( MYUBRR );
 	fdevopen(&UART_Transmit, &UART_Receive);
@@ -296,6 +310,7 @@ int main(void){
 	JOY_init();
 	CAN_init();
 	printf(init_complete_str);
+	
 	
 	menu_t* mainMenu = 0x1801; //tyring to push main menu to external RAM, because malloc() makes data memory overflow.
 	mainMenu = MENU_init();
@@ -317,16 +332,16 @@ int main(void){
 	JOY_initialize_state(&current_joy_state);
 
 	STATE_t STATE = MENU;
-	uint16_t highscore = 1337;
+	
+	//EEPROM_save_score(0); //highscore is now persistent, uncomment this line, flash, and run once, then comment back, to wipe the old score from EEPROM
+	uint16_t highscore = EEPROM_read_score();
 	uint16_t score = 0;
 	
 	USER_profile_t * active_user = &default_profile;
 	
-	//------ TESTING OF MENU ------------
-	
 	
 	_delay_ms(500);
-	// -------- END TESTING OF MENU --------
+	
 	while (1){
 		switch(STATE){
 			case MENU:
@@ -339,6 +354,7 @@ int main(void){
 				score = Play_game(&transmit_msg, &receive_msg, &current_joy_state, &previous_joy_state, active_user, highscore);
 				if (score > highscore){
 					highscore = score;
+					EEPROM_save_score(score);
 				}
 				STATE = GAME_OVER;
 				break;
@@ -365,6 +381,10 @@ int main(void){
 			case SET_SOLENOID:
 				Set_controls_solenoid(&active_user->ctrl_pref);
 				STATE = SETTINGS;
+				break;
+			case SHOW_HIGHSCORE:
+				Show_highscore(highscore);
+				STATE = MENU;
 				break;
 			default:
 				break;

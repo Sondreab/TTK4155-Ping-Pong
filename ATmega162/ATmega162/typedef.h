@@ -48,6 +48,7 @@ typedef enum{
 	SET_MOTOR_POS,	
 	SET_SERVO,
 	SET_SOLENOID,
+	SHOW_HIGHSCORE,
 }STATE_t;
 
 

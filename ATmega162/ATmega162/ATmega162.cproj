@@ -121,6 +121,12 @@
     <Compile Include="CAN_driver.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="EEPROM.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="EEPROM.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="MCP2515_driver.c">
       <SubType>compile</SubType>
     </Compile>

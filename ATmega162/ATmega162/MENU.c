@@ -18,10 +18,8 @@
 #include "JOY_driver.h"
 
 static menu_t* mainMenu;
-static menu_t* settings;
-// static menu_t* motor_pos;
-// static menu_t* servo;
-// static menu_t* solenoid;
+//static menu_t* settings;
+
 
 static uint8_t menu_initialized = 0;
 
@@ -45,31 +43,19 @@ static void menu_assign_parents(menu_t* m){
 }
 
 void menu_create(void) {
-	mainMenu = new_menu("Main Menu", 2, NO_ACTION); 
+	mainMenu = new_menu("Main Menu", 3, NO_ACTION); 
 	mainMenu->submenus[0] = new_menu("Play game", 0, PLAY_GAME);
 	
 	mainMenu->submenus[1] = new_menu("Settings", 6, NO_ACTION);
-	settings = mainMenu->submenus[1];
 	
-	settings->submenus[0] = new_menu("Brightness", 0, SET_BRIGHTNESS);
-	settings->submenus[1] = new_menu("Calibrate Joystick", 0, CAL_JOY);
-	settings->submenus[2] = new_menu("Motor position", 0, SET_MOTOR_POS);
-	settings->submenus[3] = new_menu("Servo", 0, SET_SERVO);
-	settings->submenus[4] = new_menu("Solenoid", 0, SET_SOLENOID);
-	settings->submenus[5] = new_menu("Back", 0, MENU);
+	mainMenu->submenus[2] = new_menu("High score", 0, SHOW_HIGHSCORE);
 	
-//	motor_pos = settings->submenus[2];
-// 	control_settings->submenus[0] = new_menu("Motor Position", 4, NO_ACTION);
-// 	control_settings->submenus[1] = new_menu("Servo", 4, NO_ACTION);
-// 	control_settings->submenus[2] = new_menu("Solenoid", 3, NO_ACTION);
-// 	control_settings->submenus[3] = settings->submenus[3];
-	
-// 	motor_pos = control_settings->submenus[0];
-// 	motor_pos->submenus[0] = new_menu("R slider (recommend)", 0, SET_MOTOR_POS_R_SLIDER);
-// 	motor_pos->submenus[1] = new_menu("L slider", 0, SET_MOTOR_POS_L_SLIDER);
-// 	
-	
-	//mainMenu->submenus[2] = new_menu("Highscores", 0, NULL);
+	mainMenu->submenus[1]->submenus[0] = new_menu("Brightness", 0, SET_BRIGHTNESS);
+	mainMenu->submenus[1]->submenus[1] = new_menu("Calibrate Joystick", 0, CAL_JOY);
+	mainMenu->submenus[1]->submenus[2] = new_menu("Motor position", 0, SET_MOTOR_POS);
+	mainMenu->submenus[1]->submenus[3] = new_menu("Servo", 0, SET_SERVO);
+	mainMenu->submenus[1]->submenus[4] = new_menu("Solenoid", 0, SET_SOLENOID);
+	mainMenu->submenus[1]->submenus[5] = new_menu("Back", 0, MENU);
 	
 	
 	menu_assign_parents(mainMenu);
@@ -88,7 +74,7 @@ static char spaces_str[] = "     ";
 STATE_t MENU_controller(menu_t* menu_ptr){
 	_delay_ms(500);
 	STATE_t state = NO_ACTION;
-	printf("%i\n",state);
+	//printf("%i\n",state);
 	OLED_reset();
 	NEW_OLED_print(menu_ptr->name);
 	for (uint8_t i = 0; i < menu_ptr->num_submenus; i++) {
